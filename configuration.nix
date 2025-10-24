@@ -104,6 +104,7 @@
      cifs-utils
      nfs-utils
      git
+     helm
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

@@ -4,6 +4,17 @@
 
 { config, lib, pkgs, meta, ... }:
 
+let
+  kubeHelm = pkgs.wrapHelm pkgs.kubernetes-helm {
+    plugins = with pkgs.kubernetes-helmPlugins; [
+      helm-secrets
+      helm-diff
+      helm-s3
+      helm-git
+    ];
+  };
+in
+
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -105,7 +116,7 @@
      cifs-utils
      nfs-utils
      git
-     helm
+     kubeHelm
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

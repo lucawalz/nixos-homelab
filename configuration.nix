@@ -55,7 +55,8 @@
   services.k3s = {
     enable = true;
     role = if meta.hostname == "master" then "server" else "agent";
-    tokenFile = pkgs.writeText "k3s-token" (builtins.readFile ./secrets/k3s-token);
+    #tokenFile = pkgs.writeText "k3s-token" (builtins.readFile ./secrets/k3s-token);
+    tokenFile = "/var/lib/rancher/k3s/server/node-token";
     serverAddr = if meta.hostname == "master" then "" else "https://master:6443";
     extraFlags = 
       if meta.hostname == "master" then [

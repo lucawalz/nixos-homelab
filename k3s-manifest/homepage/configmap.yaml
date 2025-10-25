@@ -5,83 +5,64 @@ metadata:
   namespace: homepage
 data:
   settings.yaml: |
-    title: 🏠 Luca's Homelab
-    favicon: https://avatars.githubusercontent.com/u/lucawalz
+    title: Luca's Homelab
     theme: dark
     color: slate
     target: _blank
-    headerStyle: boxed
-    hideVersion: true
-    
-    # Fix host validation
     base: https://home.syslabs.dev
     
-    layout:
-      Monitoring:
-        style: row
-        columns: 3
-      Infrastructure:
-        style: row
-        columns: 3
-
+  bookmarks.yaml: |
+    - Developer:
+        - GitHub:
+            - abbr: GH
+              href: https://github.com/lucawalz
+    
+    - Homelab:
+        - Repository:
+            - abbr: HL
+              href: https://github.com/lucawalz/nixos-homelab
+        - Cloudflare:
+            - abbr: CF
+              href: https://dash.cloudflare.com
+    
   services.yaml: |
     - Monitoring:
         - Grafana:
-            icon: grafana.png
             href: https://grafana.syslabs.dev
             description: Metrics & Dashboards
-            ping: https://grafana.syslabs.dev
+            icon: grafana.png
 
         - Prometheus:
-            icon: prometheus.png
             href: http://prometheus.monitoring.svc.cluster.local:9090
             description: Metrics Collection
+            icon: prometheus.png
 
     - Infrastructure:
         - Longhorn:
-            icon: longhorn.png
             href: http://longhorn-frontend.longhorn-system.svc.cluster.local
             description: Distributed Storage
+            icon: longhorn.png
 
         - Traefik:
-            icon: traefik.png
             href: http://traefik.traefik.svc.cluster.local:9000/dashboard/
             description: Ingress Controller
-            
-        - K3s Cluster:
-            icon: kubernetes.png
-            description: Kubernetes Cluster
-            widget:
-              type: kubernetes
-              cluster:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-              nodes:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
+            icon: traefik.png
 
   widgets.yaml: |
-    - logo:
-        icon: https://avatars.githubusercontent.com/u/lucawalz
+    - search:
+        provider: google
+        target: _blank
         
     - greeting:
         text_size: xl
-        text: "Welcome back, Luca! 👋"
+        text: "Welcome, Luca!"
 
     - datetime:
         text_size: xl
         format:
-          dateStyle: long
           timeStyle: short
-          hour12: false
-
-    - search:
-        provider: google
-        target: _blank
+          dateStyle: short
+          hourCycle: h23
 
     - openmeteo:
         label: Berlin
@@ -91,45 +72,13 @@ data:
         cache: 5
 
     - resources:
-        backend: kubernetes
-        expanded: true
         cpu: true
         memory: true
-
-    - rss:
-        title: Hacker News
-        url: https://news.ycombinator.com/rss
-        limit: 8
-
-    - rss:
-        title: r/homelab
-        url: https://www.reddit.com/r/homelab/.rss
-        limit: 8
-
-  bookmarks.yaml: |
-    - Developer:
-        - GitHub:
-            - icon: github.png
-              href: https://github.com/lucawalz
-        - Homelab Repo:
-            - icon: github.png
-              href: https://github.com/lucawalz/nixos-homelab
-
-    - Documentation:
-        - NixOS:
-            - icon: si-nixos
-              href: https://nixos.org/manual/nixos/stable/
-        - K3s:
-            - icon: kubernetes.png
-              href: https://docs.k3s.io
-
-    - Management:
-        - Cloudflare:
-            - icon: cloudflare.png
-              href: https://dash.cloudflare.com
-  
+        cputemp: true
+        uptime: true
+        disk: /
+        
   docker.yaml: |
-    # Not used - Kubernetes mode
     
   kubernetes.yaml: |
     mode: cluster

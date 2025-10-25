@@ -1,25 +1,27 @@
 # NixOS secrets (plain text - DO NOT COMMIT)
-nixos/secrets/
+nixos/secrets/*
 !nixos/secrets/.gitignore
+!nixos/secrets/*.age          # ← ALLOW encrypted .age files
 nixos/*.secret
 nixos/hardware-configuration.nix
 
-# K3s secrets (unencrypted)
+# K3s secrets (unencrypted - DO NOT COMMIT)
 k3s-manifest/*/secrets/
 k3s-manifest/*/*.secret
 k3s-manifest/*/*-secret.yaml
 k3s-manifest/*/secret.yaml
 *.secret.yaml
 
-# But ALLOW encrypted SOPS files
-!k3s-manifest/*/*.enc.yaml
-!*.enc.yaml
+# But ALLOW encrypted files
+!k3s-manifest/*/*.enc.yaml    # SOPS encrypted
+!*.enc.yaml                   # SOPS encrypted
+!nixos/secrets/*.age          # agenix encrypted (duplicate for clarity)
 
-# Cloudflare tokens
+# Cloudflare plain text tokens
 k3s-manifest/cloudflare/*-credentials.yaml
 k3s-manifest/cloudflare/tunnel-credentials.json
 
-# General patterns
+# General plain text secret patterns
 *-token.yaml
 *-password.yaml
 *.key

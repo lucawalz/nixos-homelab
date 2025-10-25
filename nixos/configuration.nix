@@ -20,6 +20,13 @@ in
     [ # Include the results of the hardware scan.
     ];
 
+  age.secrets.k3s-token = {
+    file = ./secrets/k3s-token.age;
+    mode = "0400";
+    owner = "root";
+    group = "root";
+  };
+
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
@@ -66,8 +73,10 @@ in
   services.k3s = {
     enable = true;
     role = if meta.hostname == "master" then "server" else "agent";
-    #tokenFile = pkgs.writeText "k3s-token" (builtins.readFile ./secrets/k3s-token);
-    tokenFile = "/var/lib/rancher/k3s/server/node-token";
+    # Use encrypted token for worker nodes
+    tokenFile = if meta.hostname == "master"
+                then "/var/lib/rancher/k3s/server/node-token"
+                else config.age.secrets.k3s-token.path;
     serverAddr = if meta.hostname == "master" then "" else "https://master:6443";
     extraFlags = 
       if meta.hostname == "master" then [

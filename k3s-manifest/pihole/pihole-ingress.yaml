@@ -1,31 +1,20 @@
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: pihole
   namespace: pihole
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-security-headers@kubernetescrd
 spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`pihole.syslabs.dev`)
-      kind: Rule
-      services:
-        - name: pihole-web
-          port: 80
-  tls:
-    certResolver: cloudflare
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: pihole-http
-  namespace: pihole
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`pihole.syslabs.dev`)
-      kind: Rule
-      services:
-        - name: pihole-web
-          port: 80
+  ingressClassName: traefik
+  rules:
+    - host: pihole.syslabs.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pihole-web
+                port:
+                  number: 80

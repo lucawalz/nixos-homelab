@@ -1,0 +1,23 @@
+# SOPS configuration for encrypting K8s secrets
+
+keys:
+  # Your age key (generate with: age-keygen -o ~/.config/sops/age/keys.txt)
+  - &admin_lucawalz age1t3ce6qjhjffvdamzmdhp50tnfnkyw0ytmzkw0s844vfdmystcp2qfvdem9
+  
+  # Master node key
+  - &master age16s0zny37a6hm00kefeq3q9swjw0prd0urzctzpsq2wqznxxpkpesukfd4x
+
+creation_rules:
+  # K8s secrets - encrypt with both admin and master
+  - path_regex: k3s-manifest/.*/.*\.enc\.yaml$
+    key_groups:
+      - age:
+          - *admin_lucawalz
+          - *master
+  
+  # Cloudflare secrets
+  - path_regex: k3s-manifest/cloudflare/.*\.enc\.yaml$
+    key_groups:
+      - age:
+          - *admin_lucawalz
+          - *master

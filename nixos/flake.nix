@@ -1,33 +1,29 @@
 {
-  description = "Homelab NixOS Flake";
+  description = "NixOS homelab configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, disko, ... }@inputs:
-  let
-    nodes = [
-      "master"
-      "worker-1"
-      "worker-2"
-    ];
-  in {
-    nixosConfigurations = builtins.listToAttrs (map (name: {
-      name = name;
-      value = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          meta = { hostname = name; };
-        };
+  outputs = { self, nixpkgs, disko, agenix, ... }: {
+    nixosConfigurations = {
+      master = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           disko.nixosModules.disko
-          ./disko-config.nix
+          agenix.nixosModules.default
           ./configuration.nix
+          ./disko-config.nix
         ];
       };
-    }) nodes);
+    };
   };
 }

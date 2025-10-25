@@ -1,19 +1,25 @@
-# NixOS secrets
+# NixOS secrets (plain text - DO NOT COMMIT)
 nixos/secrets/
+!nixos/secrets/.gitignore
 nixos/*.secret
 nixos/hardware-configuration.nix
 
-# K3s secrets
+# K3s secrets (unencrypted)
 k3s-manifest/*/secrets/
 k3s-manifest/*/*.secret
 k3s-manifest/*/*-secret.yaml
+k3s-manifest/*/secret.yaml
 *.secret.yaml
+
+# But ALLOW encrypted SOPS files
+!k3s-manifest/*/*.enc.yaml
+!*.enc.yaml
 
 # Cloudflare tokens
 k3s-manifest/cloudflare/*-credentials.yaml
 k3s-manifest/cloudflare/tunnel-credentials.json
 
-# General secret patterns
+# General patterns
 *-token.yaml
 *-password.yaml
 *.key

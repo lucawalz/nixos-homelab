@@ -117,6 +117,8 @@ in
      nfs-utils
      git
      kubeHelm
+     sops
+     age
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

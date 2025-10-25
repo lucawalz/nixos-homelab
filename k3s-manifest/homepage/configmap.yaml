@@ -5,7 +5,7 @@ metadata:
   namespace: homepage
 data:
   settings.yaml: |
-    title: 🏠 Luca's Homelab
+    title: Luca's Homelab
     favicon: https://github.com/lucawalz.png
     theme: dark
     color: slate
@@ -13,26 +13,14 @@ data:
     target: _blank
     hideVersion: false
     statusStyle: dot
-    quicklaunch:
-      searchDescriptions: true
-      hideInternetSearch: false
-      hideVisitURL: false
     layout:
       Services:
         style: row
-        columns: 2
+        columns: 3
         header: true
       Infrastructure:
         style: row
-        columns: 2
-        header: true
-      System Info:
-        style: row
         columns: 3
-        header: true
-      News & Updates:
-        style: column
-        columns: 1
         header: true
     
   services.yaml: |
@@ -43,11 +31,6 @@ data:
             icon: grafana.png
             ping: https://grafana.syslabs.dev
             statusStyle: dot
-            widget:
-              type: grafana
-              url: https://grafana.syslabs.dev
-              username: admin
-              password: admin
             
         - Prometheus:
             href: http://prometheus.monitoring.svc.cluster.local:9090
@@ -55,441 +38,144 @@ data:
             icon: prometheus.png
             ping: http://prometheus.monitoring.svc.cluster.local:9090
             statusStyle: dot
-            widget:
-              type: prometheus
-              url: http://prometheus.monitoring.svc.cluster.local:9090
             
     - Infrastructure:
-        - Longhorn Storage:
+        - Longhorn:
             href: http://longhorn-frontend.longhorn-system.svc.cluster.local
-            description: Distributed Block Storage
+            description: Block Storage
             icon: longhorn.png
             ping: http://longhorn-frontend.longhorn-system.svc.cluster.local
             statusStyle: dot
-            widget:
-              type: longhorn
-              url: http://longhorn-frontend.longhorn-system.svc.cluster.local
             
         - Traefik:
             href: http://traefik.traefik.svc.cluster.local:9000/dashboard/
-            description: Ingress & Load Balancer
+            description: Ingress Controller
             icon: traefik.png
             statusStyle: dot
             
-        - Cloudflare Tunnel:
+        - Cloudflare:
             href: https://dash.cloudflare.com
-            description: Secure External Access
+            description: DNS & Tunnels
             icon: cloudflare.png
-            ping: https://dash.cloudflare.com
             statusStyle: dot
             
-        - K3s Cluster:
-            icon: kubernetes.png
-            description: Kubernetes Control Plane
-            widget:
-              type: kubernetes
-              cluster:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-                label: cluster
-              nodes:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-              
   bookmarks.yaml: |
-    - Developer Tools:
+    - Development:
         - GitHub:
             - icon: si-github
               href: https://github.com/lucawalz
               abbr: GH
-              description: My GitHub Profile
               
         - Homelab Repo:
             - icon: si-github
               href: https://github.com/lucawalz/nixos-homelab
               abbr: HL
-              description: Infrastructure Code
-              
-        - GitHub Actions:
-            - icon: si-githubactions
-              href: https://github.com/lucawalz/nixos-homelab/actions
-              abbr: CI
-              description: Build Pipelines
               
     - Documentation:
         - NixOS:
             - icon: si-nixos
               href: https://nixos.org/manual/nixos/stable/
               abbr: NX
-              description: NixOS Manual
               
         - K3s:
             - icon: si-kubernetes
               href: https://docs.k3s.io
               abbr: K3
-              description: Lightweight K8s
-              
-        - Longhorn:
-            - icon: longhorn.png
-              href: https://longhorn.io/docs
-              abbr: LH
-              description: Storage Docs
-              
-        - Traefik:
-            - icon: traefik.png
-              href: https://doc.traefik.io/traefik/
-              abbr: TF
-              description: Proxy Docs
-              
-    - Cloud Services:
-        - Cloudflare:
-            - icon: si-cloudflare
-              href: https://dash.cloudflare.com
-              abbr: CF
-              description: DNS & Tunnels
-              
-        - Cloudflare Zero Trust:
-            - icon: si-cloudflare
-              href: https://one.dash.cloudflare.com
-              abbr: ZT
-              description: Access Control
               
   widgets.yaml: |
-    # Top Row - Welcome & Time
     - logo:
         icon: https://github.com/lucawalz.png
         
     - greeting:
-        text_size: 4xl
-        text: "Welcome back, Luca! 👋"
+        text_size: 3xl
+        text: "Welcome, Luca"
         
     - datetime:
-        text_size: 2xl
+        text_size: xl
         format:
-          dateStyle: full
+          dateStyle: long
           timeStyle: short
           hourCycle: h23
           
-    # Second Row - Search & Weather
     - search:
         provider: google
         target: _blank
-        focus: false
-        showSearchSuggestions: true
         
-    - openmeteo:
-        label: Berlin
-        latitude: 52.52
-        longitude: 13.40
-        timezone: Europe/Berlin
-        units: metric
-        cache: 5
-        format:
-          maximumFractionDigits: 1
-          
-    # Third Row - System Resources (separate widgets for better layout)
-    - resources:
-        label: CPU
-        cpu: true
-        memory: false
-        disk: false
-        cputemp: false
-        uptime: false
-        expanded: true
-        
-    - resources:
-        label: Memory
-        cpu: false
-        memory: true
-        disk: false
-        expanded: true
-        
-    - resources:
-        label: Storage
-        cpu: false
-        memory: false
-        disk: /
-        expanded: true
-        
-    # Fourth Row - Cluster Info
     - kubernetes:
         cluster:
           show: true
           cpu: true
           memory: true
           showLabel: true
-          label: K3s Cluster
         nodes:
           show: true
           cpu: true
           memory: true
           showLabel: true
           
-    # Fifth Row - News Feeds
-    - rss:
-        title: 📰 Hacker News
-        url: https://news.ycombinator.com/rss
-        limit: 8
-        cache: 3h
-        
-    - rss:
-        title: 🏠 r/homelab
-        url: https://www.reddit.com/r/homelab/.rss
-        limit: 8
-        cache: 3h
-        
-    - rss:
-        title: 🐧 r/selfhosted
-        url: https://www.reddit.com/r/selfhosted/.rss
-        limit: 8
-        cache: 3h
-        
-    # Sixth Row - GitHub Activity (if you want it)
-    # Requires GitHub Personal Access Token
-    # - github:
-    #     token: your_github_token
-    #     login: lucawalz
-    #     limit: 10
-        
   docker.yaml: ""
   
   kubernetes.yaml: |
     mode: cluster
     
   custom.css: |
-    /* ===== GENERAL LAYOUT ===== */
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       background-attachment: fixed;
     }
     
-    /* Container max width for better organization */
-    .container {
-      max-width: 1600px !important;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    
-    /* ===== HEADER ===== */
     header {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-      margin-bottom: 2rem;
       border-radius: 0 0 1rem 1rem;
+      margin-bottom: 1.5rem;
     }
     
-    /* Logo styling */
     .logo img {
       border-radius: 50%;
-      border: 3px solid rgba(99, 102, 241, 0.5);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-      transition: transform 0.3s ease;
+      border: 2px solid rgba(99, 102, 241, 0.5);
     }
     
-    .logo img:hover {
-      transform: scale(1.1) rotate(5deg);
-    }
-    
-    /* Greeting text */
-    .greeting {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: bold;
-    }
-    
-    /* ===== WIDGETS ===== */
     .widget {
       background: rgba(30, 41, 59, 0.6) !important;
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 1rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      margin-bottom: 1rem;
-    }
-    
-    .widget:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-      border-color: rgba(99, 102, 241, 0.4);
-    }
-    
-    /* Weather widget special styling */
-    .openmeteo-widget {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
-    }
-    
-    /* Kubernetes widget */
-    .kubernetes-widget {
-      background: linear-gradient(135deg, rgba(51, 103, 214, 0.2) 0%, rgba(0, 191, 255, 0.2) 100%);
-    }
-    
-    /* ===== SERVICE CARDS ===== */
-    .service-card {
-      background: rgba(30, 41, 59, 0.7) !important;
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      border-radius: 1rem;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .service-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .service-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(99, 102, 241, 0.4);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-    }
-    
-    .service-card:hover::before {
-      opacity: 1;
-    }
-    
-    /* Service status dots */
-    .status-dot {
-      box-shadow: 0 0 8px currentColor;
-    }
-    
-    /* ===== BOOKMARKS ===== */
-    .bookmark-group {
-      background: rgba(30, 41, 59, 0.5);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      border-radius: 1rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    .bookmark-card {
-      background: rgba(51, 65, 85, 0.6);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 0.75rem;
       transition: all 0.3s ease;
-      padding: 0.75rem;
     }
     
-    .bookmark-card:hover {
-      background: rgba(71, 85, 105, 0.8);
-      transform: translateX(4px);
+    .widget:hover {
       border-color: rgba(99, 102, 241, 0.4);
     }
     
-    /* ===== SECTION HEADERS ===== */
-    .section-header {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-      border-left: 4px solid rgb(99, 102, 241);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      font-weight: bold;
-      font-size: 1.25rem;
-      color: rgb(226, 232, 240);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* ===== RSS FEEDS ===== */
-    .rss-widget {
-      background: rgba(30, 41, 59, 0.6);
+    .service-card {
+      background: rgba(30, 41, 59, 0.6) !important;
       backdrop-filter: blur(12px);
       border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 1rem;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-    
-    .rss-item {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-      padding: 0.75rem;
-      transition: background 0.2s ease;
-    }
-    
-    .rss-item:hover {
-      background: rgba(51, 65, 85, 0.4);
-    }
-    
-    /* ===== SEARCH BAR ===== */
-    .search-container input {
-      background: rgba(30, 41, 59, 0.8) !important;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      border-radius: 2rem;
-      padding: 0.75rem 1.5rem;
-      color: white;
+      border-radius: 0.75rem;
       transition: all 0.3s ease;
     }
     
-    .search-container input:focus {
-      border-color: rgb(99, 102, 241);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-      background: rgba(30, 41, 59, 0.95) !important;
+    .service-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.4);
     }
     
-    /* ===== SCROLLBAR ===== */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
+    .bookmark-group {
       background: rgba(30, 41, 59, 0.5);
-      border-radius: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 0.75rem;
+      padding: 1rem;
     }
     
-    ::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.5);
-      border-radius: 4px;
-      transition: background 0.3s ease;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(99, 102, 241, 0.8);
-    }
-    
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .widget, .service-card, .bookmark-group {
-      animation: fadeInUp 0.5s ease-out;
-    }
-    
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-      .container {
-        padding: 0.5rem;
-      }
-      
-      .section-header {
-        font-size: 1rem;
-        padding: 0.75rem;
-      }
+    .section-header {
+      background: rgba(99, 102, 241, 0.15);
+      border-left: 3px solid rgb(99, 102, 241);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-weight: 600;
+      color: rgb(226, 232, 240);
     }
     
   custom.js: ""

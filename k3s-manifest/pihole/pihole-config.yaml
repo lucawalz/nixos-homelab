@@ -5,9 +5,9 @@ metadata:
   namespace: pihole
 data:
   TZ: "Europe/Berlin"
-  WEBPASSWORD: "admin"  # Change this! Or use secret for production
-  DNS1: "1.1.1.1"        # Cloudflare DNS
-  DNS2: "1.0.0.1"        # Cloudflare DNS backup
+  # WEBPASSWORD removed - now using secret
+  DNS1: "1.1.1.1"
+  DNS2: "1.0.0.1"
   DNSSEC: "true"
   DNSMASQ_LISTENING: "all"
   VIRTUAL_HOST: "pihole.syslabs.dev"

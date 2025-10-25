@@ -4,9 +4,9 @@ metadata:
   name: pihole
   namespace: pihole
 spec:
-  replicas: 1  # Pi-hole should be single instance
+  replicas: 1
   strategy:
-    type: Recreate  # Avoid multiple instances
+    type: Recreate
   selector:
     matchLabels:
       app: pihole
@@ -31,6 +31,13 @@ spec:
         - name: https
           containerPort: 443
           protocol: TCP
+        env:
+        # Password from secret (overrides ConfigMap)
+        - name: WEBPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pihole-password
+              key: WEBPASSWORD
         envFrom:
         - configMapRef:
             name: pihole-config
@@ -63,7 +70,7 @@ spec:
         securityContext:
           capabilities:
             add:
-            - NET_ADMIN  # Required for DNS
+            - NET_ADMIN
       volumes:
       - name: pihole-data
         persistentVolumeClaim:

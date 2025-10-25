@@ -16,6 +16,20 @@ spec:
         app: homepage
     spec:
       serviceAccountName: homepage
+      initContainers:
+        - name: copy-config
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - |
+              cp /tmp/config-source/* /app/config/ || true
+              chmod -R 777 /app/config
+          volumeMounts:
+            - name: config-source
+              mountPath: /tmp/config-source
+            - name: config
+              mountPath: /app/config
       containers:
         - name: homepage
           image: ghcr.io/gethomepage/homepage:latest
@@ -31,8 +45,6 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /app/config
-            - name: logs
-              mountPath: /app/config/logs
           resources:
             requests:
               cpu: 100m
@@ -53,10 +65,10 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
       volumes:
-        - name: config
+        - name: config-source
           configMap:
             name: homepage-config
-        - name: logs
+        - name: config
           emptyDir: {}
 ---
 apiVersion: v1
@@ -74,16 +86,3 @@ spec:
       targetPort: 3000
       name: http
   type: ClusterIP
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: homepage-config
-  namespace: homepage
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 1Gi

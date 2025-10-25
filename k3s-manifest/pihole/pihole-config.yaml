@@ -5,7 +5,6 @@ metadata:
   namespace: pihole
 data:
   TZ: "Europe/Berlin"
-  # WEBPASSWORD removed - now using secret
   DNS1: "1.1.1.1"
   DNS2: "1.0.0.1"
   DNSSEC: "true"
@@ -14,3 +13,5 @@ data:
   TEMPERATUREUNIT: "c"
   WEBUIBOXEDLAYOUT: "boxed"
   QUERY_LOGGING: "true"
+  # Allow queries from your local network
+  PIHOLE_DNS_: "192.168.2.0/24"

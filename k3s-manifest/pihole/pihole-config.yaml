@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-config
+  namespace: pihole
+data:
+  TZ: "Europe/Berlin"
+  WEBPASSWORD: "admin"  # Change this! Or use secret for production
+  DNS1: "1.1.1.1"        # Cloudflare DNS
+  DNS2: "1.0.0.1"        # Cloudflare DNS backup
+  DNSSEC: "true"
+  DNSMASQ_LISTENING: "all"
+  VIRTUAL_HOST: "pihole.syslabs.dev"
+  TEMPERATUREUNIT: "c"
+  WEBUIBOXEDLAYOUT: "boxed"
+  QUERY_LOGGING: "true"

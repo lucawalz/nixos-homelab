@@ -46,6 +46,9 @@ spec:
           mountPath: /etc/pihole
         - name: pihole-dnsmasq
           mountPath: /etc/dnsmasq.d
+        - name: custom-dnsmasq
+          mountPath: /etc/dnsmasq.d/02-custom.conf
+          subPath: 02-custom.conf
         resources:
           requests:
             memory: "256Mi"
@@ -78,3 +81,6 @@ spec:
       - name: pihole-dnsmasq
         persistentVolumeClaim:
           claimName: pihole-dnsmasq
+      - name: custom-dnsmasq
+        configMap:
+          name: pihole-custom-dnsmasq

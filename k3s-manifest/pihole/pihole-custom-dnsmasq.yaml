@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-custom-dnsmasq
+  namespace: pihole
+data:
+  02-custom.conf: |
+    # Listen on all interfaces
+    interface=eth0
+    # Don't bind to specific interface, respond to all
+    bind-dynamic
+    # Don't check if local, accept from anywhere
+    local-service=false

@@ -17,6 +17,22 @@
     nixosConfigurations = {
       master = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = {
+          meta = { hostname = "master"; };
+        };
+        modules = [
+          disko.nixosModules.disko
+          agenix.nixosModules.default
+          ./configuration.nix
+          ./disko-config.nix
+        ];
+      };
+      
+      worker-1 = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          meta = { hostname = "worker-1"; };
+        };
         modules = [
           disko.nixosModules.disko
           agenix.nixosModules.default

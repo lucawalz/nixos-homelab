@@ -8,77 +8,29 @@ data:
     title: Luca's Homelab
     theme: dark
     color: slate
-    target: _blank
-    base: https://home.syslabs.dev
-    
-  bookmarks.yaml: |
-    - Developer:
-        - GitHub:
-            - abbr: GH
-              href: https://github.com/lucawalz
-    
-    - Homelab:
-        - Repository:
-            - abbr: HL
-              href: https://github.com/lucawalz/nixos-homelab
-        - Cloudflare:
-            - abbr: CF
-              href: https://dash.cloudflare.com
     
   services.yaml: |
     - Monitoring:
         - Grafana:
             href: https://grafana.syslabs.dev
-            description: Metrics & Dashboards
-            icon: grafana.png
-
-        - Prometheus:
-            href: http://prometheus.monitoring.svc.cluster.local:9090
-            description: Metrics Collection
-            icon: prometheus.png
-
-    - Infrastructure:
-        - Longhorn:
-            href: http://longhorn-frontend.longhorn-system.svc.cluster.local
-            description: Distributed Storage
-            icon: longhorn.png
-
-        - Traefik:
-            href: http://traefik.traefik.svc.cluster.local:9000/dashboard/
-            description: Ingress Controller
-            icon: traefik.png
-
+            description: Metrics Dashboard
+            
+  bookmarks.yaml: |
+    - Links:
+        - GitHub:
+            - abbr: GH
+              href: https://github.com/lucawalz
+              
   widgets.yaml: |
-    - search:
-        provider: google
-        target: _blank
-        
-    - greeting:
-        text_size: xl
-        text: "Welcome, Luca!"
-
     - datetime:
         text_size: xl
         format:
           timeStyle: short
-          dateStyle: short
-          hourCycle: h23
-
-    - openmeteo:
-        label: Berlin
-        latitude: 52.52
-        longitude: 13.40
-        units: metric
-        cache: 5
-
-    - resources:
-        cpu: true
-        memory: true
-        cputemp: true
-        uptime: true
-        disk: /
+          
+    - greeting:
+        text: Welcome!
         
-  docker.yaml: |
-    
+  docker.yaml: ""
+  
   kubernetes.yaml: |
     mode: cluster

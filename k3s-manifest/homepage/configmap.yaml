@@ -6,74 +6,172 @@ metadata:
 data:
   settings.yaml: |
     title: Luca's Homelab
+    favicon: https://github.com/lucawalz.png
     theme: dark
     color: slate
     headerStyle: boxed
     target: _blank
     hideVersion: true
+    showStats: false
+    layout:
+      Monitoring:
+        style: row
+        columns: 3
+        icon: mdi-chart-line
+      Infrastructure:
+        style: row
+        columns: 3
+        icon: mdi-server
+      Quick Access:
+        style: row
+        columns: 4
+        icon: mdi-lightning-bolt
     
   services.yaml: |
     - Monitoring:
         - Grafana:
             href: https://grafana.syslabs.dev
-            description: Metrics & Dashboards
+            description: Metrics visualization and dashboards
             icon: grafana.png
+            ping: https://grafana.syslabs.dev
+            siteMonitor: https://grafana.syslabs.dev
             
         - Prometheus:
             href: http://prometheus.monitoring.svc.cluster.local:9090
-            description: Metrics Collection
+            description: Time-series metrics database
             icon: prometheus.png
+            ping: http://prometheus.monitoring.svc.cluster.local:9090
             
     - Infrastructure:
         - Longhorn:
             href: http://longhorn-frontend.longhorn-system.svc.cluster.local
-            description: Distributed Storage
+            description: Distributed block storage
             icon: longhorn.png
+            ping: http://longhorn-frontend.longhorn-system.svc.cluster.local
             
         - Traefik:
             href: http://traefik.traefik.svc.cluster.local:9000/dashboard/
-            description: Ingress Controller
+            description: Ingress controller & load balancer
             icon: traefik.png
+            
+        - Cloudflare Tunnel:
+            href: https://dash.cloudflare.com
+            description: Secure external access
+            icon: cloudflare.png
               
   bookmarks.yaml: |
-    - Developer:
+    - Development:
         - GitHub Profile:
-            - abbr: GH
+            - icon: github-light.png
               href: https://github.com/lucawalz
+              description: My GitHub profile
               
-        - Homelab Repo:
-            - abbr: HL
+        - Homelab Repository:
+            - icon: github-light.png
               href: https://github.com/lucawalz/nixos-homelab
+              description: Infrastructure as Code
+              
+    - Documentation:
+        - NixOS Manual:
+            - icon: si-nixos
+              href: https://nixos.org/manual/nixos/stable/
+              description: NixOS documentation
+              
+        - K3s Docs:
+            - icon: kubernetes.png
+              href: https://docs.k3s.io
+              description: Lightweight Kubernetes
+              
+        - Longhorn Docs:
+            - icon: longhorn.png
+              href: https://longhorn.io/docs
+              description: Cloud-native storage
               
     - Management:
         - Cloudflare Dashboard:
-            - abbr: CF
+            - icon: cloudflare.png
               href: https://dash.cloudflare.com
+              description: DNS & Tunnel management
               
-        - NixOS Manual:
-            - abbr: NX
-              href: https://nixos.org/manual/nixos/stable/
+        - GitHub Actions:
+            - icon: github-light.png
+              href: https://github.com/lucawalz/nixos-homelab/actions
+              description: CI/CD pipelines
               
   widgets.yaml: |
+    - logo:
+        icon: https://github.com/lucawalz.png
+        
     - greeting:
-        text_size: xl
+        text_size: 4xl
         text: "Welcome back, Luca! 👋"
         
+    - search:
+        provider: google
+        target: _blank
+        
     - datetime:
-        text_size: xl
+        text_size: 3xl
         format:
+          dateStyle: full
           timeStyle: short
-          dateStyle: long
           hourCycle: h23
           
     - openmeteo:
-        label: Berlin
+        label: Berlin, Germany
         latitude: 52.52
         longitude: 13.40
+        timezone: Europe/Berlin
         units: metric
         cache: 5
-        
+        format:
+          maximumFractionDigits: 1
+          
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: K3s Cluster
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          
   docker.yaml: ""
   
   kubernetes.yaml: |
     mode: cluster
+    
+  custom.css: |
+    /* Custom styling for homepage */
+    
+    /* Glassmorphism effect for widgets */
+    .widget {
+      backdrop-filter: blur(10px);
+      background: rgba(30, 41, 59, 0.7) !important;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    /* Service cards hover effect */
+    .service-card:hover {
+      transform: translateY(-4px);
+      transition: all 0.3s ease;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Bookmark cards with gradient border */
+    .bookmark-card {
+      border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-image-slice: 1;
+    }
+    
+    /* Header gradient */
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    }
+    
+  custom.js: ""

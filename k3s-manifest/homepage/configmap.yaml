@@ -5,11 +5,17 @@ metadata:
   namespace: homepage
 data:
   settings.yaml: |
-    title: Luca's Homelab
+    title: 🏠 Luca's Homelab
     favicon: https://avatars.githubusercontent.com/u/lucawalz
     theme: dark
     color: slate
     target: _blank
+    headerStyle: boxed
+    hideVersion: true
+    
+    # Fix host validation
+    base: https://home.syslabs.dev
+    
     layout:
       Monitoring:
         style: row
@@ -17,9 +23,6 @@ data:
       Infrastructure:
         style: row
         columns: 3
-      Quick Links:
-        style: row
-        columns: 4
 
   services.yaml: |
     - Monitoring:
@@ -27,28 +30,18 @@ data:
             icon: grafana.png
             href: https://grafana.syslabs.dev
             description: Metrics & Dashboards
-            widget:
-              type: grafana
-              url: https://grafana.syslabs.dev
-              username: admin
-              password: admin
+            ping: https://grafana.syslabs.dev
 
         - Prometheus:
             icon: prometheus.png
             href: http://prometheus.monitoring.svc.cluster.local:9090
             description: Metrics Collection
-            widget:
-              type: prometheus
-              url: http://prometheus.monitoring.svc.cluster.local:9090
 
     - Infrastructure:
         - Longhorn:
             icon: longhorn.png
             href: http://longhorn-frontend.longhorn-system.svc.cluster.local
             description: Distributed Storage
-            widget:
-              type: longhorn
-              url: http://longhorn-frontend.longhorn-system.svc.cluster.local
 
         - Traefik:
             icon: traefik.png
@@ -77,7 +70,7 @@ data:
         
     - greeting:
         text_size: xl
-        text: "Welcome back, Luca!"
+        text: "Welcome back, Luca! 👋"
 
     - datetime:
         text_size: xl
@@ -103,25 +96,40 @@ data:
         cpu: true
         memory: true
 
+    - rss:
+        title: Hacker News
+        url: https://news.ycombinator.com/rss
+        limit: 8
+
+    - rss:
+        title: r/homelab
+        url: https://www.reddit.com/r/homelab/.rss
+        limit: 8
+
   bookmarks.yaml: |
     - Developer:
         - GitHub:
             - icon: github.png
               href: https://github.com/lucawalz
-        - Documentation:
-            - icon: gitbook.png
-              href: https://nixos.org/manual/nixos/stable/
-
-    - Homelab:
-        - Repository:
+        - Homelab Repo:
             - icon: github.png
               href: https://github.com/lucawalz/nixos-homelab
+
+    - Documentation:
+        - NixOS:
+            - icon: si-nixos
+              href: https://nixos.org/manual/nixos/stable/
+        - K3s:
+            - icon: kubernetes.png
+              href: https://docs.k3s.io
+
+    - Management:
         - Cloudflare:
             - icon: cloudflare.png
               href: https://dash.cloudflare.com
-
+  
   docker.yaml: |
-    # We use Kubernetes instead
+    # Not used - Kubernetes mode
     
   kubernetes.yaml: |
     mode: cluster

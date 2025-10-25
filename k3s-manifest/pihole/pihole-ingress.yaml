@@ -4,7 +4,7 @@ metadata:
   name: pihole
   namespace: pihole
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-security-headers@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: pihole-pihole-redirect-admin@kubernetescrd,traefik-security-headers@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

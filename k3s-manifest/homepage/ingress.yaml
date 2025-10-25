@@ -4,7 +4,8 @@ metadata:
   name: homepage
   namespace: homepage
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: traefik-security-headers@kubernetescrd
+    # inline scrips are needed
+    # traefik.ingress.kubernetes.io/router.middlewares: traefik-security-headers@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

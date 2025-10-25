@@ -8,27 +8,70 @@ data:
     title: Luca's Homelab
     theme: dark
     color: slate
+    headerStyle: boxed
+    target: _blank
+    hideVersion: true
     
   services.yaml: |
     - Monitoring:
         - Grafana:
             href: https://grafana.syslabs.dev
-            description: Metrics Dashboard
+            description: Metrics & Dashboards
+            icon: grafana.png
             
+        - Prometheus:
+            href: http://prometheus.monitoring.svc.cluster.local:9090
+            description: Metrics Collection
+            icon: prometheus.png
+            
+    - Infrastructure:
+        - Longhorn:
+            href: http://longhorn-frontend.longhorn-system.svc.cluster.local
+            description: Distributed Storage
+            icon: longhorn.png
+            
+        - Traefik:
+            href: http://traefik.traefik.svc.cluster.local:9000/dashboard/
+            description: Ingress Controller
+            icon: traefik.png
+              
   bookmarks.yaml: |
-    - Links:
-        - GitHub:
+    - Developer:
+        - GitHub Profile:
             - abbr: GH
               href: https://github.com/lucawalz
               
+        - Homelab Repo:
+            - abbr: HL
+              href: https://github.com/lucawalz/nixos-homelab
+              
+    - Management:
+        - Cloudflare Dashboard:
+            - abbr: CF
+              href: https://dash.cloudflare.com
+              
+        - NixOS Manual:
+            - abbr: NX
+              href: https://nixos.org/manual/nixos/stable/
+              
   widgets.yaml: |
+    - greeting:
+        text_size: xl
+        text: "Welcome back, Luca! 👋"
+        
     - datetime:
         text_size: xl
         format:
           timeStyle: short
+          dateStyle: long
+          hourCycle: h23
           
-    - greeting:
-        text: Welcome!
+    - openmeteo:
+        label: Berlin
+        latitude: 52.52
+        longitude: 13.40
+        units: metric
+        cache: 5
         
   docker.yaml: ""
   

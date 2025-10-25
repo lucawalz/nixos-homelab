@@ -26,6 +26,8 @@ spec:
           env:
             - name: TZ
               value: "Europe/Berlin"
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "home.syslabs.dev"
           volumeMounts:
             - name: config
               mountPath: /app/config

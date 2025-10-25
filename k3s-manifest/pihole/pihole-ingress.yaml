@@ -12,9 +12,6 @@ spec:
       services:
         - name: pihole-web
           port: 80
-      middlewares:
-        - name: security-headers
-          namespace: traefik
   tls:
     certResolver: cloudflare
 ---
@@ -32,6 +29,3 @@ spec:
       services:
         - name: pihole-web
           port: 80
-      middlewares:
-        - name: redirect-https
-          namespace: traefik

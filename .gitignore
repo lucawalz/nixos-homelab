@@ -1,3 +1,24 @@
-secrets/
-*.secret
-hardware-configuration.nix
+# NixOS secrets
+nixos/secrets/
+nixos/*.secret
+nixos/hardware-configuration.nix
+
+# K3s secrets
+k3s-manifest/*/secrets/
+k3s-manifest/*/*.secret
+k3s-manifest/*/*-secret.yaml
+*.secret.yaml
+
+# Cloudflare tokens
+k3s-manifest/cloudflare/*-credentials.yaml
+k3s-manifest/cloudflare/tunnel-credentials.json
+
+# General secret patterns
+*-token.yaml
+*-password.yaml
+*.key
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db

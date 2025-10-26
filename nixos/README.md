@@ -324,6 +324,29 @@ git commit -m "Add worker-2 to secret encryption"
 git push
 ```
 
+#### Quick Reference - Secret Management Commands
+
+```bash
+# === agenix (NixOS secrets) ===
+cd ~/nixos-homelab/nixos
+agenix -e secrets/<secret-name>.age          # Edit secret
+agenix --rekey                                # Re-encrypt after adding nodes
+sudo nixos-rebuild switch --flake .#master   # Deploy changes
+
+# === SOPS (K8s secrets) ===
+cd ~/nixos-homelab
+sops k3s-manifest/<app>/secret.enc.yaml                        # Edit secret
+sops -d k3s-manifest/<app>/secret.enc.yaml | kubectl apply -f # Deploy to cluster
+
+# === Check decrypted secrets ===
+# agenix (on node):
+ssh master@<node-ip> "ls -la /run/agenix/"
+
+# SOPS (in cluster):
+kubectl get secret -n <namespace>
+kubectl get secret <name> -n <namespace> -o yaml
+```
+
 ---
 
 ## Customization

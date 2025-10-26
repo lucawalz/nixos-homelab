@@ -8,15 +8,15 @@ keys:
   - &master age16s0zny37a6hm00kefeq3q9swjw0prd0urzctzpsq2wqznxxpkpesukfd4x
 
 creation_rules:
-  # K8s secrets - encrypt with both admin and master
-  - path_regex: k3s-manifest/.*/.*\.enc\.yaml$
+  # K8s secrets - match both .yaml and .enc.yaml
+  - path_regex: k3s-manifest/.*/(.*-secret|secret).*\.yaml$
     key_groups:
       - age:
           - *admin_lucawalz
           - *master
   
   # Cloudflare secrets
-  - path_regex: k3s-manifest/cloudflare/.*\.enc\.yaml$
+  - path_regex: k3s-manifest/cloudflare/.*\.yaml$
     key_groups:
       - age:
           - *admin_lucawalz

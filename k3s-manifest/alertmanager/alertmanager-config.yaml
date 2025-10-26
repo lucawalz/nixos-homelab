@@ -27,13 +27,7 @@ data:
     receivers:
     - name: 'gotify'
       webhook_configs:
-      - url: 'http://gotify.gotify.svc.cluster.local/message?token=CHANGE_ME'
+      - url: 'http://gotify.gotify.svc.cluster.local/message?token=GOTIFY_TOKEN_PLACEHOLDER'
         send_resolved: true
         http_config:
           follow_redirects: true
-        # Message formatting
-        title: '{{ template "gotify.title" . }}'
-        message: '{{ template "gotify.message" . }}'
-
-    templates:
-    - '/etc/alertmanager/templates/*.tmpl'

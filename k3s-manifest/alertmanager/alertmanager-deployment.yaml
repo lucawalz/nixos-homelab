@@ -15,13 +15,30 @@ spec:
       labels:
         app: alertmanager
     spec:
+      initContainers:
+      - name: config-reloader
+        image: busybox:latest
+        command:
+        - sh
+        - -c
+        - |
+          TOKEN=$(cat /secrets/gotify-token/token)
+          sed "s|GOTIFY_TOKEN_PLACEHOLDER|$TOKEN|g" /config-template/alertmanager.yml > /config/alertmanager.yml
+        volumeMounts:
+        - name: config-template
+          mountPath: /config-template
+        - name: config
+          mountPath: /config
+        - name: gotify-token
+          mountPath: /secrets/gotify-token
+          readOnly: true
       containers:
       - name: alertmanager
         image: prom/alertmanager:v0.27.0
         args:
         - '--config.file=/etc/alertmanager/alertmanager.yml'
         - '--storage.path=/alertmanager'
-        - '--web.external-url=http://alertmanager.syslabs.dev'
+        - '--web.external-url=http://localhost:9093'
         ports:
         - containerPort: 9093
           name: http
@@ -52,11 +69,16 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
       volumes:
-      - name: config
+      - name: config-template
         configMap:
           name: alertmanager-config
+      - name: config
+        emptyDir: {}
       - name: templates
         configMap:
           name: alertmanager-templates
       - name: storage
         emptyDir: {}
+      - name: gotify-token
+        secret:
+          secretName: gotify-token

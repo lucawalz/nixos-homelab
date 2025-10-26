@@ -1,9 +1,10 @@
 # NixOS Homelab Infrastructure
 
-A fully declarative, reproducible homelab infrastructure using NixOS and Kubernetes (K3s) with production-grade secret management.
+A fully declarative, reproducible homelab infrastructure using NixOS and Kubernetes (K3s) with GitOps via Flux CD and production-grade secret management.
 
 [![NixOS](https://img.shields.io/badge/NixOS-unstable-blue.svg)](https://nixos.org)
 [![K3s](https://img.shields.io/badge/K3s-Kubernetes-green.svg)](https://k3s.io)
+[![Flux CD](https://img.shields.io/badge/GitOps-Flux_CD-purple.svg)](https://fluxcd.io)
 [![SOPS](https://img.shields.io/badge/Secrets-SOPS-orange.svg)](https://github.com/getsops/sops)
 [![agenix](https://img.shields.io/badge/Secrets-agenix-purple.svg)](https://github.com/ryantm/agenix)
 
@@ -15,14 +16,17 @@ A fully declarative, reproducible homelab infrastructure using NixOS and Kuberne
 
 ## Overview
 
-This repository contains everything needed to deploy and manage a complete homelab infrastructure:
+This repository contains everything needed to deploy and manage a complete homelab infrastructure with GitOps automation:
 
 - **Operating System:** NixOS (declarative Linux distribution)
 - **Orchestration:** K3s (lightweight Kubernetes)
+- **GitOps:** Flux CD (automated deployment from Git)
 - **Storage:** Longhorn (distributed block storage)
 - **Ingress:** Traefik (reverse proxy & load balancer)
+- **Certificates:** cert-manager (automated TLS)
 - **External Access:** Cloudflare Tunnel (secure external connectivity)
 - **Monitoring:** Prometheus + Grafana (metrics & visualization)
+- **Dashboard:** Homepage (unified homelab dashboard)
 - **Secret Management:** SOPS + agenix (encrypted secrets in git)
 
 ---
@@ -42,7 +46,13 @@ nixos-homelab/
 │       └── k3s-token.age    # Encrypted K3s cluster join token
 │
 ├── k3s-manifest/            # Kubernetes application manifests
+│   ├── flux/                # Flux CD GitOps configuration
+│   │   ├── flux-gitrepository.yaml    # Git repository source
+│   │   ├── flux-kustomization.yaml    # Deployment automation
+│   │   └── secret.enc.yaml            # Encrypted SOPS key
+│   ├── cert-manager/        # TLS certificate automation
 │   ├── cloudflare/          # Cloudflare Tunnel for external access
+│   ├── homepage/            # Homelab dashboard
 │   ├── longhorn/            # Distributed storage system
 │   ├── monitoring/          # Prometheus + Grafana stack
 │   └── traefik/             # Ingress middleware configurations
@@ -107,24 +117,108 @@ export KUBECONFIG=~/.kube/homelab.yaml
 kubectl get nodes
 ```
 
-### 3. Deploy Kubernetes Applications
+### 3. Bootstrap Flux CD (GitOps)
 
-Deploy in order:
+Install Flux CLI:
+```bash
+# macOS
+brew install fluxcd/tap/flux
+
+# Linux
+curl -s https://fluxcd.io/install.sh | sudo bash
+```
+
+Bootstrap Flux CD to your cluster:
+```bash
+cd ~/nixos-homelab
+
+# Install Flux controllers
+flux install
+
+# Deploy SOPS secret for decryption
+sops -d k3s-manifest/flux/secret.enc.yaml | kubectl apply -f -
+
+# Apply GitRepository source
+kubectl apply -f k3s-manifest/flux/flux-gitrepository.yaml
+
+# Apply Kustomization (starts automatic deployment)
+kubectl apply -f k3s-manifest/flux/flux-kustomization.yaml
+
+# Watch Flux deploy everything
+flux get kustomizations --watch
+```
+
+**That's it!** Flux will now automatically deploy and manage all applications from this Git repository.
+
+### 4. Verify Deployment
 
 ```bash
-# 1. Storage (required first)
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/longhorn.yaml
+# Check Flux status
+flux get sources git
+flux get kustomizations
 
-# 2. Cloudflare Tunnel (external access)
-cd ~/nixos-homelab
-sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
-kubectl apply -f k3s-manifest/cloudflare/
-
-# 3. Monitoring stack
-kubectl apply -f k3s-manifest/monitoring/
-
-# 4. Verify everything
+# Check all pods are running
 kubectl get pods -A
+
+# Access services
+# - Grafana: https://grafana.syslabs.dev
+# - Homepage: https://homepage.syslabs.dev
+```
+
+---
+
+## GitOps Workflow with Flux CD
+
+### How It Works
+
+1. **You push changes** to this Git repository
+2. **Flux detects changes** automatically (every 1 minute)
+3. **Flux applies manifests** to the cluster
+4. **Flux decrypts secrets** using SOPS automatically
+5. **Applications update** without manual intervention
+
+### Make Changes
+
+```bash
+# 1. Edit any manifest
+vim k3s-manifest/monitoring/grafana-deployment.yaml
+
+# 2. Commit and push
+git add k3s-manifest/monitoring/grafana-deployment.yaml
+git commit -m "Update Grafana to v10.0.0"
+git push
+
+# 3. Watch Flux apply changes (automatic!)
+flux get kustomizations --watch
+
+# Or force immediate reconciliation
+flux reconcile kustomization flux-system --with-source
+```
+
+### Flux Commands Reference
+
+```bash
+# Check Flux installation
+flux check
+
+# View Git sources
+flux get sources git
+
+# View Kustomizations (deployments)
+flux get kustomizations
+
+# Force reconciliation (sync now)
+flux reconcile kustomization flux-system --with-source
+
+# Suspend/Resume automation
+flux suspend kustomization flux-system
+flux resume kustomization flux-system
+
+# View events
+flux events
+
+# Logs from Flux controllers
+flux logs --follow
 ```
 
 ---
@@ -133,22 +227,48 @@ kubectl get pods -A
 
 This repository uses **two** encryption systems:
 
-| Tool | Purpose | Files |
-|------|---------|-------|
-| **SOPS** | Kubernetes secrets | `k3s-manifest/**/*.enc.yaml` |
-| **agenix** | NixOS system secrets | `nixos/secrets/*.age` |
+| Tool | Purpose | Files | Decryption |
+|------|---------|-------|------------|
+| **SOPS** | Kubernetes secrets | `k3s-manifest/**/*.enc.yaml` | Flux + SOPS controller |
+| **agenix** | NixOS system secrets | `nixos/secrets/*.age` | agenix at boot |
 
-### Working with SOPS (K8s Secrets)
+### SOPS with Flux CD
+
+**Flux automatically decrypts SOPS-encrypted secrets** when applying manifests. No manual decryption needed!
 
 ```bash
-# View encrypted secret
-sops -d k3s-manifest/cloudflare/secret.enc.yaml
-
 # Edit encrypted secret
 sops k3s-manifest/cloudflare/secret.enc.yaml
 
-# Deploy to cluster
-sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
+# Commit and push
+git add k3s-manifest/cloudflare/secret.enc.yaml
+git commit -m "Update Cloudflare token"
+git push
+
+# Flux automatically decrypts and applies (within 1 minute)
+# Or force immediate sync:
+flux reconcile kustomization flux-system --with-source
+```
+
+### Manual Secret Operations (if needed)
+
+```bash
+# View decrypted content
+sops -d k3s-manifest/cloudflare/secret.enc.yaml
+
+# Create new encrypted secret
+cat > /tmp/secret.yaml << 'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+  namespace: default
+stringData:
+  password: "super-secret"
+EOF
+
+sops -e /tmp/secret.yaml > k3s-manifest/myapp/secret.enc.yaml
+rm /tmp/secret.yaml
 ```
 
 ### Working with agenix (NixOS Secrets)
@@ -171,6 +291,7 @@ sudo nixos-rebuild switch --flake .#master
 
 | Service | URL | Description |
 |---------|-----|-------------|
+| Homepage | https://homepage.syslabs.dev | Unified homelab dashboard |
 | Grafana | https://grafana.syslabs.dev | Metrics visualization & dashboards |
 | Prometheus | Internal (port 9090) | Metrics collection & storage |
 | Longhorn UI | Internal (port 80) | Storage management interface |
@@ -181,29 +302,31 @@ sudo nixos-rebuild switch --flake .#master
 
 ## Common Operations
 
+### Update Application via GitOps
+
+```bash
+# 1. Edit manifest locally
+vim k3s-manifest/monitoring/grafana-deployment.yaml
+
+# 2. Commit and push
+git add k3s-manifest/monitoring/grafana-deployment.yaml
+git commit -m "Update Grafana image"
+git push
+
+# 3. Flux applies automatically
+# Watch progress:
+flux get kustomizations --watch
+kubectl rollout status deployment/grafana -n monitoring
+```
+
 ### Rebuild NixOS Configuration
 
 On any node:
 ```bash
 ssh master@<node-ip>
 cd /path/to/nixos-homelab/nixos
+git pull
 sudo nixos-rebuild switch --flake .
-```
-
-### Update Node Configuration
-
-```bash
-# Make changes locally
-cd ~/nixos-homelab/nixos
-vim configuration.nix
-
-# Commit and push
-git add .
-git commit -m "Update config"
-git push
-
-# Pull and rebuild on node
-ssh master@<node-ip> "cd /path/to/repo && git pull && sudo nixos-rebuild switch --flake ."
 ```
 
 ### Scale K3s Worker Nodes
@@ -222,34 +345,40 @@ worker-2 = nixpkgs.lib.nixosSystem {
 nixos-anywhere --flake .#worker-2 root@<new-worker-ip>
 ```
 
+3. Verify in cluster:
+```bash
+kubectl get nodes
+```
+
 ### View Logs
 
 ```bash
-# K3s service logs
-ssh master@<node-ip> "sudo journalctl -u k3s -f"
-
 # Kubernetes pod logs
 kubectl logs -n <namespace> <pod-name> -f
 
 # All pods in namespace
 kubectl logs -n monitoring -l app=prometheus --tail=50
+
+# K3s service logs
+ssh master@<node-ip> "sudo journalctl -u k3s -f"
+
+# Flux logs
+flux logs --follow
 ```
 
-### Backup & Restore
+### Rollback Changes
 
-#### NixOS Configuration
 ```bash
-# Everything is in git - just clone and deploy!
-git clone https://github.com/lucawalz/nixos-homelab.git
-```
+# Git revert
+git revert <commit-hash>
+git push
 
-#### Kubernetes State
-```bash
-# Backup all resources
-kubectl get all --all-namespaces -o yaml > cluster-backup.yaml
+# Flux will automatically apply the revert
 
-# Longhorn handles persistent volume backups
-# Configure in: k3s-manifest/longhorn/backup-target.yaml
+# Or suspend Flux and manually fix
+flux suspend kustomization flux-system
+kubectl apply -f k3s-manifest/monitoring/grafana-deployment.yaml
+flux resume kustomization flux-system
 ```
 
 ---
@@ -264,8 +393,10 @@ cd ~/nixos-homelab/nixos
 # Update flake inputs
 nix flake update
 
-# Test build locally
-nix build .#nixosConfigurations.master.config.system.build.toplevel
+# Commit lockfile
+git add flake.lock
+git commit -m "Update NixOS packages"
+git push
 
 # Deploy to nodes
 ssh master@<master-ip> "cd /path/to/repo && git pull && sudo nixos-rebuild switch --flake ."
@@ -277,54 +408,86 @@ ssh master@<master-ip> "cd /path/to/repo && git pull && sudo nixos-rebuild switc
 # Update image versions in manifests
 vim k3s-manifest/monitoring/grafana-deployment.yaml
 
-# Apply changes
-kubectl apply -f k3s-manifest/monitoring/
+# Commit and push
+git add k3s-manifest/monitoring/
+git commit -m "Update monitoring stack"
+git push
 
-# Or force restart
-kubectl rollout restart deployment/grafana -n monitoring
+# Flux applies automatically!
 ```
 
 ### Rotate Secrets
 
-#### Cloudflare Token
+#### Kubernetes Secret (SOPS)
 ```bash
-cd ~/nixos-homelab
-
-# Edit and update token
+# Edit encrypted secret
 sops k3s-manifest/cloudflare/secret.enc.yaml
 
-# Commit
+# Update the value, save
+
+# Commit and push
 git add k3s-manifest/cloudflare/secret.enc.yaml
 git commit -m "Rotate Cloudflare token"
 git push
 
-# Deploy
-sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
+# Flux applies automatically
+# Restart affected pods if needed:
 kubectl rollout restart deployment/cloudflared -n cloudflare
 ```
 
-#### K3s Token
+#### NixOS Secret (agenix)
 ```bash
-# Get new token from master
-ssh master@<master-ip> "sudo cat /var/lib/rancher/k3s/server/node-token"
-
-# Update encrypted secret
 cd ~/nixos-homelab/nixos
+
+# Edit secret
 agenix -e secrets/k3s-token.age
-# Paste new token, save
+# Update value, save
 
 # Commit and push
 git add secrets/k3s-token.age
 git commit -m "Rotate K3s token"
 git push
 
-# Rebuild worker nodes
+# Rebuild affected nodes
 ssh master@<worker-ip> "cd /path/to/repo && git pull && sudo nixos-rebuild switch --flake ."
 ```
 
 ---
 
 ## Troubleshooting
+
+### Flux Not Syncing
+
+```bash
+# Check Flux status
+flux check
+
+# View reconciliation errors
+flux get kustomizations
+flux get sources git
+
+# View Flux controller logs
+flux logs --level=error
+
+# Force reconciliation
+flux reconcile kustomization flux-system --with-source
+```
+
+### SOPS Decryption Fails
+
+```bash
+# Check SOPS secret exists
+kubectl get secret -n flux-system sops-age
+
+# Check Flux can decrypt
+flux logs | grep -i sops
+
+# Verify .sops.yaml configuration
+cat .sops.yaml
+
+# Re-apply SOPS secret
+sops -d k3s-manifest/flux/secret.enc.yaml | kubectl apply -f -
+```
 
 ### Node Won't Boot
 ```bash
@@ -341,8 +504,6 @@ ssh master@<worker-ip> "sudo journalctl -u k3s -n 50"
 # Verify network connectivity to master
 ssh master@<worker-ip> "ping -c 3 master"
 ssh master@<worker-ip> "nc -zv master 6443"
-
-# Re-encrypt token if needed (see Rotate Secrets above)
 ```
 
 ### Pod Stuck in Pending
@@ -356,37 +517,40 @@ kubectl describe pod <pod-name> -n <namespace>
 # - Image pull errors: Check image name/tag
 ```
 
-### Grafana Not Accessible
+### Application Not Updating
 ```bash
-# Check Cloudflare tunnel is running
-kubectl get pods -n cloudflare
-kubectl logs -n cloudflare -l app=cloudflared
+# Verify Git has changes
+git log
 
-# Check Grafana is running
-kubectl get pods -n monitoring
-kubectl logs -n monitoring -l app=grafana
+# Check Flux sees the changes
+flux get sources git
 
-# Check ingress
-kubectl get ingress -n monitoring
-```
+# Force reconciliation
+flux reconcile kustomization flux-system --with-source
 
-### SOPS/agenix Decryption Fails
-```bash
-# Verify your age key exists
-cat ~/.config/sops/age/keys.txt
-
-# For SOPS
-export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
-sops -d k3s-manifest/cloudflare/secret.enc.yaml
-
-# For agenix - check SSH keys on nodes
-ssh master@<node-ip> "cat /etc/ssh/ssh_host_ed25519_key.pub"
-# Must match key in nixos/secrets.nix
+# Check for errors
+flux logs | grep -i error
 ```
 
 ---
 
 ## Architecture Details
+
+### GitOps Flow
+
+```
+Developer
+  ↓ git push
+GitHub Repository (nixos-homelab)
+  ↓ Flux monitors (every 1min)
+Flux Controllers (in cluster)
+  ↓ detects changes
+SOPS Decryption (automatic)
+  ↓
+kubectl apply
+  ↓
+Kubernetes Resources Updated
+```
 
 ### Network Flow
 
@@ -416,13 +580,15 @@ Node Local Storage (/var/lib/longhorn)
 
 ### Secret Flow
 
-**SOPS (K8s):**
+**SOPS (K8s) with Flux:**
 ```
 Encrypted in git (.enc.yaml)
   ↓
-SOPS decrypts with age key
+Flux detects change
   ↓
-kubectl apply creates Secret
+Flux + SOPS controller decrypts
+  ↓
+kubectl apply creates Secret (automatic!)
   ↓
 Pods mount Secret as env var or file
 ```
@@ -444,35 +610,35 @@ NixOS services reference path
 
 ### Official Documentation
 - [NixOS Manual](https://nixos.org/manual/nixos/stable/)
-- [Nix Flakes](https://nixos.wiki/wiki/Flakes)
+- [Flux CD Documentation](https://fluxcd.io/docs/)
 - [K3s Documentation](https://docs.k3s.io)
 - [Longhorn Docs](https://longhorn.io/docs)
 - [SOPS Guide](https://github.com/getsops/sops)
 - [agenix Guide](https://github.com/ryantm/agenix)
-- [Traefik Documentation](https://doc.traefik.io/traefik/)
 
 ### Useful Commands Reference
+- [Flux CLI Reference](https://fluxcd.io/flux/cmd/)
 - [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 - [nix Command Reference](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix.html)
 
 ### Community
+- [Flux CD Slack](https://cloud-native.slack.com/)
 - [NixOS Discourse](https://discourse.nixos.org/)
 - [K3s GitHub Discussions](https://github.com/k3s-io/k3s/discussions)
-- [r/NixOS](https://www.reddit.com/r/NixOS/)
 
 ---
 
 ## Roadmap
 
+- [x] GitOps with Flux CD
+- [x] Automated secret decryption with SOPS
+- [x] TLS certificates with cert-manager
+- [x] Homelab dashboard with Homepage
 - [ ] Automated Longhorn backups to S3/NFS
-- [ ] ArgoCD for GitOps workflow
 - [ ] Network policies for pod-to-pod security
 - [ ] Loki + Promtail for log aggregation
 - [ ] Alertmanager for monitoring alerts
-- [ ] Pre-configured Grafana dashboards
-- [ ] CI/CD pipeline for validation
 - [ ] Multi-cluster federation
-- [ ] Automated certificate management with cert-manager
 - [ ] Velero for disaster recovery
 
 ---
@@ -497,6 +663,7 @@ MIT License - use freely for your own projects!
 
 Built with amazing open-source tools:
 - [NixOS](https://nixos.org) - Declarative Linux distribution
+- [Flux CD](https://fluxcd.io) - GitOps for Kubernetes
 - [K3s](https://k3s.io) - Lightweight Kubernetes
 - [Longhorn](https://longhorn.io) - Cloud-native storage
 - [SOPS](https://github.com/getsops/sops) - Secret management

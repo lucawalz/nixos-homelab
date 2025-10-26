@@ -1,12 +1,37 @@
 # Kubernetes Manifests
 
-This directory contains Kubernetes application manifests for the homelab cluster.
+This directory contains Kubernetes application manifests for the homelab cluster, automatically deployed via **Flux CD GitOps**.
+
+---
+
+## Overview
+
+All applications in this directory are **automatically deployed and managed by Flux CD**. Simply commit changes to Git and Flux will apply them to the cluster within 1 minute.
+
+### GitOps Workflow
+
+1. **Edit manifest** in this directory
+2. **Commit and push** to GitHub
+3. **Flux detects change** automatically (polls every 1 minute)
+4. **Flux applies manifest** to cluster
+5. **Application updates** automatically
+
+No manual `kubectl apply` needed! 🎉
+
+---
 
 ## Directory Structure
 
 ```
 k3s-manifest/
+├── flux/                # Flux CD GitOps configuration
+│   ├── flux-gitrepository.yaml    # Git repository source
+│   ├── flux-kustomization.yaml    # Deployment automation
+│   └── secret.enc.yaml            # Encrypted SOPS decryption key
+│
+├── cert-manager/        # TLS certificate automation
 ├── cloudflare/          # Cloudflare Tunnel for external access
+├── homepage/            # Homelab dashboard
 ├── longhorn/            # Distributed block storage
 ├── monitoring/          # Prometheus + Grafana observability stack
 └── traefik/             # Ingress middleware configurations
@@ -14,91 +39,138 @@ k3s-manifest/
 
 ---
 
-## Deployment Order
+## Initial Setup (One-Time)
 
-Deploy applications in this order to satisfy dependencies:
-
-### 1. Storage Foundation (Longhorn)
+### 1. Install Flux CD
 
 ```bash
-# Install Longhorn
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/deploy/longhorn.yaml
+# Install Flux CLI
+# macOS
+brew install fluxcd/tap/flux
 
-# Wait for Longhorn to be ready
-kubectl wait --for=condition=ready pod -n longhorn-system -l app=longhorn-manager --timeout=300s
+# Linux
+curl -s https://fluxcd.io/install.sh | sudo bash
 
-# Apply backup configuration (optional)
-kubectl apply -f k3s-manifest/longhorn/backup-target.yaml
+# Verify
+flux --version
 ```
 
-**Why first?** Other applications need persistent storage (PVCs).
-
-### 2. Ingress Middleware (Traefik)
+### 2. Bootstrap Flux to Cluster
 
 ```bash
-# Apply security headers middleware
-kubectl apply -f k3s-manifest/traefik/
+cd ~/nixos-homelab
+
+# Install Flux controllers
+flux install
+
+# Deploy SOPS secret for decryption
+sops -d k3s-manifest/flux/secret.enc.yaml | kubectl apply -f -
+
+# Apply GitRepository source
+kubectl apply -f k3s-manifest/flux/flux-gitrepository.yaml
+
+# Apply Kustomization (starts automatic deployment)
+kubectl apply -f k3s-manifest/flux/flux-kustomization.yaml
+
+# Watch Flux deploy everything
+flux get kustomizations --watch
 ```
 
-**Note:** Traefik itself is built into K3s, we're just adding middleware.
-
-### 3. External Access (Cloudflare Tunnel)
+### 3. Verify Deployment
 
 ```bash
-# Decrypt and apply secret
-sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
+# Check Flux status
+flux check
 
-# Deploy cloudflared
-kubectl apply -f k3s-manifest/cloudflare/cloudflared-deployment.yaml
+# View Git sources
+flux get sources git
 
-# Verify tunnel is connected
-kubectl logs -n cloudflare -l app=cloudflared --tail=20
+# View Kustomizations
+flux get kustomizations
+
+# Check all pods
+kubectl get pods -A
 ```
 
-### 4. Monitoring Stack (Prometheus + Grafana)
+**That's it!** Flux is now managing your cluster from Git.
 
-```bash
-# Deploy entire monitoring stack
-kubectl apply -f k3s-manifest/monitoring/
+---
 
-# Wait for pods to be ready
-kubectl wait --for=condition=ready pod -n monitoring -l app=grafana --timeout=300s
-kubectl wait --for=condition=ready pod -n monitoring -l app=prometheus --timeout=300s
+## Deployment Order (Handled by Flux)
 
-# Access Grafana
-# https://grafana.syslabs.dev (via Cloudflare Tunnel)
-# Default credentials: admin / admin
-```
+Flux automatically handles dependencies, but here's the logical order:
+
+1. **Flux System** - GitOps controllers
+2. **cert-manager** - TLS certificate management
+3. **Longhorn** - Persistent storage (required by other apps)
+4. **Traefik Middleware** - Security headers for ingress
+5. **Cloudflare Tunnel** - External access
+6. **Monitoring Stack** - Prometheus + Grafana
+7. **Homepage** - Dashboard
 
 ---
 
 ## Application Details
 
-### Cloudflare Tunnel
+### Flux CD (flux/)
+
+**Purpose:** GitOps automation - deploys and manages everything from Git
+
+**Components:**
+- `flux-gitrepository.yaml` - Defines Git repo as source
+- `flux-kustomization.yaml` - Defines what to deploy and how
+- `secret.enc.yaml` - SOPS age key for secret decryption
+
+**How it works:**
+1. Flux monitors this Git repository every 1 minute
+2. When changes are detected, Flux pulls the latest manifests
+3. Flux decrypts SOPS-encrypted secrets automatically
+4. Flux applies manifests to the cluster
+5. Flux reports success/failure status
+
+**Key Settings:**
+```yaml
+spec:
+  interval: 1m              # Check for changes every minute
+  path: ./k3s-manifest      # Deploy from this directory
+  prune: true               # Delete resources removed from Git
+  decryption:
+    provider: sops          # Decrypt .enc.yaml files
+    secretRef:
+      name: sops-age        # Use this key for decryption
+```
+
+### cert-manager (cert-manager/)
+
+**Purpose:** Automated TLS certificate management
+
+**Features:**
+- Automatic certificate issuance and renewal
+- Let's Encrypt integration
+- Cloudflare DNS validation
+
+### Cloudflare Tunnel (cloudflare/)
 
 **Purpose:** Secure external access without port forwarding
 
-**Components:**
-- `secret.enc.yaml` - Encrypted Cloudflare tunnel token (SOPS)
-- `cloudflared-deployment.yaml` - Deployment with 2 replicas
+**Files:**
+- `secret.enc.yaml` - Encrypted tunnel credentials (SOPS)
+- `cloudflared-deployment.yaml` - Tunnel daemon
 
-**Configuration:**
-```yaml
-spec:
-  replicas: 2  # Redundancy
-  containers:
-    - image: cloudflare/cloudflared:latest
-      env:
-        - name: TUNNEL_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: cloudflare-tunnel-token
-              key: token
-```
+**Managed by Flux:** Yes - updates automatically on git push
 
-**See:** [cloudflare/README.md](./cloudflare/README.md)
+### Homepage (homepage/)
 
-### Longhorn
+**Purpose:** Unified homelab dashboard
+
+**Access:** https://homepage.syslabs.dev
+
+**Features:**
+- Service status monitoring
+- Quick links to all services
+- Resource usage widgets
+
+### Longhorn (longhorn/)
 
 **Purpose:** Distributed persistent storage for Kubernetes
 
@@ -111,28 +183,17 @@ spec:
 - `longhorn` - Default, 3 replicas
 - `longhorn-single` - Single replica (for testing)
 
-**See:** [longhorn/README.md](./longhorn/README.md)
-
-### Monitoring Stack
+### Monitoring Stack (monitoring/)
 
 **Purpose:** Observability and metrics visualization
 
 **Components:**
 - **Prometheus** - Metrics collection and storage
-- **Grafana** - Visualization and dashboards
-- **node-exporter** - Node-level metrics (CPU, RAM, disk)
+- **Grafana** - Visualization and dashboards (https://grafana.syslabs.dev)
+- **node-exporter** - Node-level metrics
 - **kube-state-metrics** - Kubernetes object metrics
 
-**Metrics Collected:**
-- Node resources (CPU, memory, disk)
-- Pod metrics
-- Network statistics
-- Storage usage
-- Kubernetes events
-
-**See:** [monitoring/README.md](./monitoring/README.md)
-
-### Traefik Middleware
+### Traefik Middleware (traefik/)
 
 **Purpose:** Security headers for ingress traffic
 
@@ -142,321 +203,45 @@ spec:
 - XSS Protection
 - Frame deny
 
-**See:** [traefik/README.md](./traefik/README.md)
-
 ---
 
-## Secrets Management
-
-Secrets are encrypted with **SOPS** before committing to git.
-
-### View Encrypted Secret
-
-```bash
-sops -d k3s-manifest/cloudflare/secret.enc.yaml
-```
-
-### Edit Encrypted Secret
-
-```bash
-sops k3s-manifest/cloudflare/secret.enc.yaml
-```
-
-### Create New Encrypted Secret
-
-```bash
-# 1. Create plain YAML
-cat > /tmp/my-secret.yaml << 'EOF'
-apiVersion: v1
-kind: Secret
-metadata:
-  name: my-secret
-  namespace: default
-type: Opaque
-stringData:
-  password: "super-secret"
-EOF
-
-# 2. Encrypt with SOPS
-sops -e /tmp/my-secret.yaml > k3s-manifest/myapp/secret.enc.yaml
-
-# 3. Clean up
-rm /tmp/my-secret.yaml
-
-# 4. Commit (encrypted file is safe!)
-git add k3s-manifest/myapp/secret.enc.yaml
-git commit -m "Add secret for myapp"
-```
-
-### Deploy Encrypted Secret
-
-```bash
-# Decrypt and apply in one command
-sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
-
-# Verify
-kubectl get secret cloudflare-tunnel-token -n cloudflare
-```
-
----
-
-## Common Operations
+## Working with GitOps
 
 ### Update Application
 
 ```bash
-# Edit manifest
+# 1. Edit manifest
 vim k3s-manifest/monitoring/grafana-deployment.yaml
 
-# Apply changes
-kubectl apply -f k3s-manifest/monitoring/grafana-deployment.yaml
+# 2. Commit and push
+git add k3s-manifest/monitoring/grafana-deployment.yaml
+git commit -m "Update Grafana to v10.0.0"
+git push
 
-# Watch rollout
+# 3. Watch Flux apply changes (automatic!)
+flux get kustomizations --watch
+
+# Or force immediate sync
+flux reconcile kustomization flux-system --with-source
+
+# 4. Verify rollout
 kubectl rollout status deployment/grafana -n monitoring
 ```
 
-### Scale Deployment
+### Add New Application
 
 ```bash
-# Imperative
-kubectl scale deployment/cloudflared -n cloudflare --replicas=3
-
-# Or edit manifest and apply
-```
-
-### View Logs
-
-```bash
-# Specific pod
-kubectl logs -n monitoring grafana-xxx-yyy -f
-
-# All pods with label
-kubectl logs -n monitoring -l app=grafana --tail=50
-
-# Previous container (if crashed)
-kubectl logs -n monitoring grafana-xxx-yyy -p
-```
-
-### Debug Pod Issues
-
-```bash
-# Describe pod for events
-kubectl describe pod -n monitoring grafana-xxx-yyy
-
-# Check resource usage
-kubectl top pod -n monitoring
-
-# Shell into running pod
-kubectl exec -it -n monitoring grafana-xxx-yyy -- /bin/sh
-
-# Check PVC status
-kubectl get pvc -n monitoring
-```
-
-### Restart Deployment
-
-```bash
-# Graceful restart
-kubectl rollout restart deployment/grafana -n monitoring
-
-# Force recreate
-kubectl delete pod -n monitoring -l app=grafana
-```
-
----
-
-## Accessing Services
-
-### Via Cloudflare Tunnel (External)
-
-- **Grafana:** https://grafana.syslabs.dev
-
-### Via Port Forward (Internal)
-
-```bash
-# Prometheus
-kubectl port-forward -n monitoring svc/prometheus 9090:9090
-# http://localhost:9090
-
-# Grafana (if tunnel down)
-kubectl port-forward -n monitoring svc/grafana 3000:3000
-# http://localhost:3000
-
-# Longhorn UI
-kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
-# http://localhost:8080
-```
-
-### Via NodePort (Internal Network)
-
-```bash
-# Expose service on node IP
-kubectl expose deployment grafana -n monitoring --type=NodePort --name=grafana-nodeport
-
-# Get port
-kubectl get svc -n monitoring grafana-nodeport
-# Access: http://<node-ip>:<nodeport>
-```
-
----
-
-## Troubleshooting
-
-### Pod Stuck in Pending
-
-```bash
-# Check events
-kubectl describe pod <pod-name> -n <namespace>
-
-# Common causes:
-# - PVC not bound: Check Longhorn is running
-# - Insufficient resources: Check node resources
-# - Node selector not matched: Check node labels
-```
-
-### PVC Not Binding
-
-```bash
-# Check PVC status
-kubectl get pvc -n <namespace>
-
-# Check Longhorn is healthy
-kubectl get pods -n longhorn-system
-
-# Check StorageClass
-kubectl get storageclass
-```
-
-### Image Pull Errors
-
-```bash
-# Check exact error
-kubectl describe pod <pod-name> -n <namespace>
-
-# Common issues:
-# - Wrong image name/tag
-# - Private registry (need imagePullSecrets)
-# - Network issue pulling image
-```
-
-### Service Not Accessible
-
-```bash
-# Check service exists
-kubectl get svc -n <namespace>
-
-# Check endpoints
-kubectl get endpoints -n <namespace>
-
-# Check pod is running
-kubectl get pods -n <namespace>
-
-# Check ingress
-kubectl get ingress -n <namespace>
-```
-
-### Cloudflare Tunnel Not Working
-
-```bash
-# Check pods are running
-kubectl get pods -n cloudflare
-
-# Check logs
-kubectl logs -n cloudflare -l app=cloudflared --tail=50
-
-# Should see: "Connection registered"
-
-# Check secret exists
-kubectl get secret -n cloudflare cloudflare-tunnel-token
-```
-
----
-
-## Best Practices
-
-### Resource Limits
-
-Always set requests and limits:
-
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
-```
-
-### Health Checks
-
-Use liveness and readiness probes:
-
-```yaml
-livenessProbe:
-  httpGet:
-    path: /healthz
-    port: 8080
-  initialDelaySeconds: 30
-  
-readinessProbe:
-  httpGet:
-    path: /ready
-    port: 8080
-  initialDelaySeconds: 5
-```
-
-### Labels
-
-Use consistent labels:
-
-```yaml
-metadata:
-  labels:
-    app: myapp
-    component: backend
-    environment: production
-```
-
-### Namespaces
-
-Organize by function:
-
-- `default` - User workloads
-- `monitoring` - Observability tools
-- `cloudflare` - External access
-- `longhorn-system` - Storage system
-
-### Security
-
-- Don't commit plain text secrets
-- Use NetworkPolicies to restrict traffic
-- Run as non-root where possible
-- Use read-only root filesystems
-
----
-
-## Adding New Applications
-
-1. **Create directory:**
-```bash
+# 1. Create directory and manifests
 mkdir -p k3s-manifest/myapp
-```
 
-2. **Create manifests:**
-```bash
-cd k3s-manifest/myapp
-
-# Namespace
-cat > 00-namespace.yaml << 'EOF'
+cat > k3s-manifest/myapp/namespace.yaml << 'EOF'
 apiVersion: v1
 kind: Namespace
 metadata:
   name: myapp
 EOF
 
-# Deployment
-cat > deployment.yaml << 'EOF'
+cat > k3s-manifest/myapp/deployment.yaml << 'EOF'
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -479,36 +264,400 @@ spec:
         - containerPort: 8080
 EOF
 
-# Service
-cat > service.yaml << 'EOF'
-apiVersion: v1
-kind: Service
-metadata:
-  name: myapp
-  namespace: myapp
-spec:
-  selector:
-    app: myapp
-  ports:
-  - port: 80
-    targetPort: 8080
-EOF
+# 2. Commit and push
+git add k3s-manifest/myapp/
+git commit -m "Add myapp"
+git push
+
+# 3. Flux deploys automatically!
+flux get kustomizations --watch
+kubectl get pods -n myapp
 ```
 
-4. **Deploy:**
+### Remove Application
+
 ```bash
-kubectl apply -f k3s-manifest/myapp/
+# 1. Delete directory
+git rm -r k3s-manifest/myapp
+
+# 2. Commit and push
+git commit -m "Remove myapp"
+git push
+
+# 3. Flux removes resources automatically (because prune: true)
+kubectl get ns myapp  # Should be gone after ~1 minute
+```
+
+### Rollback Changes
+
+```bash
+# Git revert
+git revert <commit-hash>
+git push
+
+# Flux applies the revert automatically
+```
+
+---
+
+## Secret Management with Flux
+
+### How SOPS Works with Flux
+
+Flux **automatically decrypts** SOPS-encrypted secrets when applying manifests. You never need to manually decrypt!
+
+```bash
+# Edit encrypted secret
+sops k3s-manifest/cloudflare/secret.enc.yaml
+
+# Commit and push
+git add k3s-manifest/cloudflare/secret.enc.yaml
+git commit -m "Update Cloudflare token"
+git push
+
+# Flux automatically:
+# 1. Detects the change
+# 2. Pulls the encrypted file
+# 3. Decrypts it using the SOPS age key
+# 4. Applies the decrypted Secret to the cluster
+```
+
+### Create New Encrypted Secret
+
+```bash
+# 1. Create plain YAML
+cat > /tmp/my-secret.yaml << 'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+  namespace: default
+type: Opaque
+stringData:
+  password: "super-secret"
+  api-key: "abc123"
+EOF
+
+# 2. Encrypt with SOPS
+sops -e /tmp/my-secret.yaml > k3s-manifest/myapp/secret.enc.yaml
+
+# 3. Clean up plaintext
+rm /tmp/my-secret.yaml
+
+# 4. Commit encrypted file (safe!)
+git add k3s-manifest/myapp/secret.enc.yaml
+git commit -m "Add secret for myapp"
+git push
+
+# 5. Flux automatically decrypts and applies!
+```
+
+### View Encrypted Secret (Local)
+
+```bash
+# Decrypt to view (doesn't modify file)
+sops -d k3s-manifest/cloudflare/secret.enc.yaml
+
+# Edit and re-encrypt
+sops k3s-manifest/cloudflare/secret.enc.yaml
+```
+
+### Verify Secret in Cluster
+
+```bash
+# Check secret exists
+kubectl get secret cloudflare-tunnel-token -n cloudflare
+
+# View secret content (base64 encoded)
+kubectl get secret cloudflare-tunnel-token -n cloudflare -o yaml
+
+# Decode secret value
+kubectl get secret cloudflare-tunnel-token -n cloudflare -o jsonpath='{.data.token}' | base64 -d
+```
+
+---
+
+## Flux Commands Reference
+
+```bash
+# === Status & Health ===
+flux check                                    # Verify Flux installation
+flux get sources git                          # View Git repositories
+flux get kustomizations                       # View Kustomizations (deployments)
+flux events                                   # View recent events
+
+# === Force Sync ===
+flux reconcile kustomization flux-system --with-source    # Sync now
+flux reconcile source git flux-system                     # Update Git source
+
+# === Suspend/Resume ===
+flux suspend kustomization flux-system        # Pause automation
+flux resume kustomization flux-system         # Resume automation
+
+# === Logs ===
+flux logs --follow                            # All Flux controller logs
+flux logs --level=error                       # Only errors
+flux logs --kind=Kustomization --name=flux-system  # Specific resource
+
+# === Debugging ===
+kubectl get gitrepositories -A                # Check Git sources
+kubectl get kustomizations -A                 # Check Kustomizations
+kubectl describe kustomization flux-system -n flux-system  # Details
+```
+
+---
+
+## Accessing Services
+
+### Via Cloudflare Tunnel (External)
+
+- **Homepage:** https://homepage.syslabs.dev
+- **Grafana:** https://grafana.syslabs.dev
+
+### Via Port Forward (Internal)
+
+```bash
+# Prometheus
+kubectl port-forward -n monitoring svc/prometheus 9090:9090
+# http://localhost:9090
+
+# Grafana (if tunnel down)
+kubectl port-forward -n monitoring svc/grafana 3000:3000
+# http://localhost:3000
+
+# Longhorn UI
+kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
+# http://localhost:8080
+
+# Homepage (local)
+kubectl port-forward -n homepage svc/homepage 8081:3000
+# http://localhost:8081
+```
+
+---
+
+## Troubleshooting
+
+### Flux Not Syncing
+
+```bash
+# Check Flux health
+flux check
+
+# View status
+flux get sources git
+flux get kustomizations
+
+# View errors
+flux logs --level=error
+
+# Force sync
+flux reconcile kustomization flux-system --with-source
+```
+
+### SOPS Decryption Fails
+
+```bash
+# Check SOPS secret exists
+kubectl get secret -n flux-system sops-age
+
+# View Flux logs for SOPS errors
+flux logs | grep -i sops
+
+# Verify .sops.yaml configuration
+cat .sops.yaml
+
+# Re-apply SOPS secret
+sops -d k3s-manifest/flux/secret.enc.yaml | kubectl apply -f -
+
+# Restart Flux controllers
+flux suspend kustomization flux-system
+flux resume kustomization flux-system
+```
+
+### Application Not Updating
+
+```bash
+# Verify Git has latest changes
+git log
+
+# Check Flux sees the changes
+flux get sources git
+
+# Check last sync time
+flux get kustomizations
+
+# Force reconciliation
+flux reconcile kustomization flux-system --with-source
+
+# View reconciliation events
+flux events --for Kustomization/flux-system
+```
+
+### Pod Stuck in Pending
+
+```bash
+# Check events
+kubectl describe pod <pod-name> -n <namespace>
+
+# Common causes:
+# - PVC not bound: Check Longhorn is running
+# - Insufficient resources: Check node resources
+# - Node selector mismatch: Check node labels
+```
+
+### Service Not Accessible
+
+```bash
+# Check service exists
+kubectl get svc -n <namespace>
+
+# Check endpoints (pod IPs)
+kubectl get endpoints -n <namespace>
+
+# Check pods are running
+kubectl get pods -n <namespace>
+
+# Check ingress
+kubectl get ingress -n <namespace>
+
+# Check Cloudflare tunnel
+kubectl logs -n cloudflare -l app=cloudflared --tail=50
+```
+
+### View Application Logs
+
+```bash
+# Specific pod
+kubectl logs -n monitoring grafana-xxx-yyy -f
+
+# All pods with label
+kubectl logs -n monitoring -l app=grafana --tail=50 -f
+
+# Previous container (if crashed)
+kubectl logs -n monitoring grafana-xxx-yyy -p
+```
+
+---
+
+## Manual Operations (When Needed)
+
+### Temporarily Disable GitOps
+
+```bash
+# Suspend Flux
+flux suspend kustomization flux-system
+
+# Make manual changes
+kubectl apply -f /tmp/emergency-fix.yaml
+
+# Resume Flux when ready
+flux resume kustomization flux-system
+```
+
+### Manual Secret Deployment
+
+```bash
+# If Flux SOPS decryption fails, deploy manually
+sops -d k3s-manifest/cloudflare/secret.enc.yaml | kubectl apply -f -
+```
+
+### Force Pod Restart
+
+```bash
+# Graceful rollout restart
+kubectl rollout restart deployment/grafana -n monitoring
+
+# Force delete pods
+kubectl delete pod -n monitoring -l app=grafana
+```
+
+---
+
+## Best Practices
+
+### 1. Always Use Git
+
+```bash
+# ❌ DON'T: kubectl apply directly
+kubectl apply -f /tmp/manual-change.yaml
+
+# ✅ DO: Commit to Git and let Flux apply
+git add k3s-manifest/myapp/
+git commit -m "Update myapp"
+git push
+```
+
+### 2. Use Meaningful Commit Messages
+
+```bash
+# ❌ Bad
+git commit -m "update"
+
+# ✅ Good
+git commit -m "monitoring: Upgrade Grafana to v10.0.0"
+```
+
+### 3. Test Changes Locally First
+
+```bash
+# Validate YAML syntax
+kubectl apply --dry-run=client -f k3s-manifest/myapp/
+
+# Check SOPS encryption
+sops -d k3s-manifest/myapp/secret.enc.yaml
+```
+
+### 4. Monitor Flux Events
+
+```bash
+# Watch for issues
+flux events --watch
+
+# Check logs regularly
+flux logs --since=1h
+```
+
+### 5. Use Resource Limits
+
+```yaml
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
+
+### 6. Use Health Checks
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 30
+  
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8080
+  initialDelaySeconds: 5
 ```
 
 ---
 
 ## Resources
 
+- [Flux CD Documentation](https://fluxcd.io/docs/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [SOPS Documentation](https://github.com/getsops/sops)
 - [K3s Documentation](https://docs.k3s.io/)
 - [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
-- [Kubernetes Patterns](https://k8spatterns.io/)
 
 ---
 
 **Need more details? Check the README in each application directory!**
+
+**Questions about GitOps workflow? See the main [README](../README.md)**

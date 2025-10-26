@@ -324,7 +324,7 @@ git commit -m "Add worker-2 to secret encryption"
 git push
 ```
 
-#### Quick Reference - Secret Management Commands
+#### Quick Reference - Secret Management
 
 ```bash
 # === agenix (NixOS secrets) ===
@@ -333,10 +333,12 @@ agenix -e secrets/<secret-name>.age          # Edit secret
 agenix --rekey                                # Re-encrypt after adding nodes
 sudo nixos-rebuild switch --flake .#master   # Deploy changes
 
-# === SOPS (K8s secrets) ===
+# === SOPS (K8s secrets) - Managed by Flux ===
 cd ~/nixos-homelab
-sops k3s-manifest/<app>/secret.enc.yaml                        # Edit secret
-sops -d k3s-manifest/<app>/secret.enc.yaml | kubectl apply -f # Deploy to cluster
+sops k3s-manifest/<app>/secret.enc.yaml      # Edit secret
+git add k3s-manifest/<app>/secret.enc.yaml
+git commit -m "Update secret"
+git push                                      # Flux applies automatically!
 
 # === Check decrypted secrets ===
 # agenix (on node):
@@ -567,6 +569,42 @@ boot.kernelPackages = pkgs.linuxPackages_6_6;
 
 ---
 
+## Integration with Flux CD
+
+### How They Work Together
+
+1. **NixOS (agenix)** - Manages OS-level secrets like K3s tokens
+2. **Flux CD (SOPS)** - Manages Kubernetes secrets automatically from Git
+
+**NixOS provides:**
+- Base OS configuration
+- K3s installation
+- System secrets (K3s token, SSH keys)
+
+**Flux CD provides:**
+- Kubernetes application deployment
+- Automatic updates from Git
+- Kubernetes secret decryption
+
+### Workflow
+
+```
+1. Deploy NixOS nodes (nixos-anywhere)
+   ├── K3s cluster created
+   └── System ready
+
+2. Bootstrap Flux CD
+   ├── flux install
+   └── Apply flux/flux-*.yaml
+
+3. Flux manages everything else!
+   ├── Deploys applications from Git
+   ├── Decrypts SOPS secrets
+   └── Keeps cluster in sync with Git
+```
+
+---
+
 ## Resources
 
 - [NixOS Manual](https://nixos.org/manual/nixos/stable/)
@@ -582,7 +620,7 @@ boot.kernelPackages = pkgs.linuxPackages_6_6;
 
 1. **Customize** `configuration.nix` for your needs
 2. **Add** more worker nodes to scale
-3. **Configure** monitoring and backups
-4. **Explore** NixOS modules for your services
+3. **Deploy** applications via Flux CD GitOps
+4. **Configure** monitoring and backups
 
 **Need help?** Check the main [README](../README.md) or open an issue!

@@ -128,6 +128,7 @@ in
      kubeHelm
      sops
      age
+     fluxcd
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

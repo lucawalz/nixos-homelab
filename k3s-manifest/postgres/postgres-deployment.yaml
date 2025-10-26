@@ -50,6 +50,15 @@ spec:
             secretKeyRef:
               name: postgres-credentials
               key: MINIFLUX_DB_NAME
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  until pg_isready -U postgres; do sleep 1; done
+                  psql -U postgres -d ${MINIFLUX_DB_NAME} -c "ALTER EXTENSION IF EXISTS hstore OWNER TO ${MINIFLUX_DB_USER};" || true
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data

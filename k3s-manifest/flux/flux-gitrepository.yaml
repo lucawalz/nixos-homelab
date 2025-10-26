@@ -13,5 +13,3 @@ spec:
   ignore: |
     # Ignore NixOS configs
     nixos/
-    # Ignore encrypted secrets (deployed manually)
-    **/*.enc.yaml

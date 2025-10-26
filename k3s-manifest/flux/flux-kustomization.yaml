@@ -11,3 +11,7 @@ spec:
   path: ./k3s-manifest
   prune: true
   wait: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

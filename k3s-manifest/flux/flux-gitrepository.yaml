@@ -8,6 +8,8 @@ spec:
   url: https://github.com/lucawalz/nixos-homelab
   ref:
     branch: main
+  secretRef:
+    name: homelab-git-credentials
   ignore: |
     # Ignore NixOS configs
     nixos/

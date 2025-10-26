@@ -12,8 +12,10 @@ data:
       CREATE USER ${MINIFLUX_DB_USER} WITH PASSWORD '${MINIFLUX_DB_PASSWORD}';
       CREATE DATABASE ${MINIFLUX_DB_NAME} OWNER ${MINIFLUX_DB_USER};
       GRANT ALL PRIVILEGES ON DATABASE ${MINIFLUX_DB_NAME} TO ${MINIFLUX_DB_USER};
-      
-      -- Enable required extensions for Miniflux
-      \c ${MINIFLUX_DB_NAME}
+    EOSQL
+    
+    # Connect to miniflux database and create extension as superuser, then transfer ownership
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${MINIFLUX_DB_NAME}" <<-EOSQL
       CREATE EXTENSION IF NOT EXISTS hstore;
+      ALTER EXTENSION hstore OWNER TO ${MINIFLUX_DB_USER};
     EOSQL

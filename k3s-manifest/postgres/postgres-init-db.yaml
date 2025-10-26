@@ -17,5 +17,5 @@ data:
     # Connect to miniflux database and create extension as superuser, then transfer ownership
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${MINIFLUX_DB_NAME}" <<-EOSQL
       CREATE EXTENSION IF NOT EXISTS hstore;
-      ALTER EXTENSION hstore OWNER TO ${MINIFLUX_DB_USER};
+      UPDATE pg_extension SET extowner = (SELECT oid FROM pg_roles WHERE rolname = '${MINIFLUX_DB_USER}') WHERE extname = 'hstore';
     EOSQL

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: miniflux
+  namespace: miniflux
+  labels:
+    app: miniflux
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: miniflux
+  template:
+    metadata:
+      labels:
+        app: miniflux
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:16-alpine
+        command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h postgres.postgres.svc.cluster.local -p 5432 -U miniflux; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: miniflux-credentials
+              key: ADMIN_PASSWORD
+      containers:
+      - name: miniflux
+        image: miniflux/miniflux:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: miniflux-credentials
+              key: DATABASE_URL
+        - name: RUN_MIGRATIONS
+          value: "1"
+        - name: CREATE_ADMIN
+          value: "1"
+        - name: ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: miniflux-credentials
+              key: ADMIN_USERNAME
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: miniflux-credentials
+              key: ADMIN_PASSWORD
+        - name: BASE_URL
+          value: "https://miniflux.syslabs.dev"
+        - name: POLLING_FREQUENCY
+          value: "60"
+        - name: BATCH_SIZE
+          value: "100"
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: miniflux
+  namespace: miniflux
+  labels:
+    app: miniflux
+spec:
+  selector:
+    app: miniflux
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: ClusterIP

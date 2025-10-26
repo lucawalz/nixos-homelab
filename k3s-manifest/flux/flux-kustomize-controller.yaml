@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kustomize-controller
+  namespace: flux-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kustomize-controller
+  namespace: flux-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kustomize-controller
+  template:
+    metadata:
+      labels:
+        app: kustomize-controller
+    spec:
+      serviceAccountName: kustomize-controller
+      containers:
+      - name: manager
+        image: ghcr.io/fluxcd/kustomize-controller:v1.4.0
+        args:
+        - --events-addr=http://notification-controller.flux-system.svc.cluster.local./
+        - --watch-all-namespaces=true
+        - --log-level=info
+        - --concurrent=4
+        - --requeue-dependency=5s
+        ports:
+        - containerPort: 8080
+          name: http-prom
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: tmp
+        emptyDir: {}

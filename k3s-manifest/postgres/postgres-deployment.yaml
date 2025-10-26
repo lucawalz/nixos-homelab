@@ -58,7 +58,7 @@ spec:
                 - -c
                 - |
                   until pg_isready -U postgres; do sleep 1; done
-                  psql -U postgres -d ${MINIFLUX_DB_NAME} -c "ALTER EXTENSION IF EXISTS hstore OWNER TO ${MINIFLUX_DB_USER};" || true
+                  psql -U postgres -d ${MINIFLUX_DB_NAME} -c "ALTER EXTENSION hstore OWNER TO ${MINIFLUX_DB_USER};" 2>/dev/null || true
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data

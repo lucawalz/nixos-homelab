@@ -14,8 +14,8 @@ data:
 
     theme:
       # Dark theme configuration
-      background-color: 121212
-      primary-color: 1a1a1a
+      background-color: "#121212"
+      primary-color: "#1a1a1a"
       contrast-multiplier: 1.2
       
       # Dark theme color scheme

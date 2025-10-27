@@ -74,5 +74,5 @@ data:
                   - url: https://grafana.com/blog/index.xml
                     title: Grafana Blog
                     
-                cache: 3600  # Cache for 1 hour
+                cache: 1h  # Cache for 1 hour
                 limit: 10    # Show 10 most recent items per feed

@@ -8,12 +8,6 @@ metadata:
     component: config
 data:
   glance.yml: |
-    theme:
-      background-color: "#0f172a"
-      primary-color: "#6366f1"
-      positive-color: "#22c55e"
-      negative-color: "#ef4444"
-
     server:
       host: 0.0.0.0
       port: 8080

@@ -185,7 +185,7 @@ data:
           # Right Column (25% width) - Repositories, Twitch, Monitoring
           - size: small
             widgets:
-              - type: repositories
+              - type: github-repositories
                 title: GitHub Repos
                 cache: 1h
                 limit: 6

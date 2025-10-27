@@ -5,8 +5,13 @@ metadata:
   namespace: glance
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: traefik-security-headers@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - home.syslabs.dev
+      secretName: home-syslabs-dev-tls
   rules:
     - host: home.syslabs.dev
       http:

@@ -35,39 +35,7 @@ spec:
           value: "postgres"
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        - name: MINIFLUX_DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: MINIFLUX_DB_USER
-        - name: MINIFLUX_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: MINIFLUX_DB_PASSWORD
-        - name: MINIFLUX_DB_NAME
-          valueFrom:
-            secretKeyRef:
-              name: postgres-credentials
-              key: MINIFLUX_DB_NAME
-        lifecycle:
-          postStart:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - |
-                  sleep 5
-                  for i in 1 2 3 4 5; do
-                    if psql -U postgres -d ${MINIFLUX_DB_NAME} -c "UPDATE pg_extension SET extowner = (SELECT oid FROM pg_roles WHERE rolname = '${MINIFLUX_DB_USER}') WHERE extname = 'hstore';" 2>/dev/null; then
-                      echo "Successfully changed hstore extension ownership"
-                      exit 0
-                    fi
-                    echo "Waiting for PostgreSQL... attempt $i"
-                    sleep 2
-                  done
-                  echo "Failed to change hstore ownership, but continuing anyway"
-                  exit 0
+
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data

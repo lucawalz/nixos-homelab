@@ -3,19 +3,4 @@ kind: ConfigMap
 metadata:
   name: postgres-init-db
   namespace: postgres
-data:
-  init-miniflux.sh: |
-    #!/bin/bash
-    set -e
-    
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-      CREATE USER ${MINIFLUX_DB_USER} WITH PASSWORD '${MINIFLUX_DB_PASSWORD}';
-      CREATE DATABASE ${MINIFLUX_DB_NAME} OWNER ${MINIFLUX_DB_USER};
-      GRANT ALL PRIVILEGES ON DATABASE ${MINIFLUX_DB_NAME} TO ${MINIFLUX_DB_USER};
-    EOSQL
-    
-    # Connect to miniflux database and create extension as superuser, then transfer ownership
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "${MINIFLUX_DB_NAME}" <<-EOSQL
-      CREATE EXTENSION IF NOT EXISTS hstore;
-      UPDATE pg_extension SET extowner = (SELECT oid FROM pg_roles WHERE rolname = '${MINIFLUX_DB_USER}') WHERE extname = 'hstore';
-    EOSQL
+data: {}

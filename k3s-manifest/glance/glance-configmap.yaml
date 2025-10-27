@@ -9,10 +9,10 @@ metadata:
 data:
   glance.yml: |
     theme:
-      background-color: 15, 23, 42
-      primary-color: 99, 102, 241
-      positive-color: 34, 197, 94
-      negative-color: 239, 68, 68
+      background-color: "#0f172a"
+      primary-color: "#6366f1"
+      positive-color: "#22c55e"
+      negative-color: "#ef4444"
 
     server:
       host: 0.0.0.0

@@ -12,9 +12,71 @@ data:
       host: 0.0.0.0
       port: 8080
 
+    theme:
+      # Dark theme configuration
+      background-color: 121212
+      primary-color: 1a1a1a
+      contrast-multiplier: 1.2
+      
+      # Dark theme color scheme
+      colors:
+        # Background colors
+        background: "#121212"
+        surface: "#1e1e1e"
+        card: "#2d2d2d"
+        
+        # Text colors
+        text-primary: "#ffffff"
+        text-secondary: "#b3b3b3"
+        text-muted: "#808080"
+        
+        # Accent colors
+        accent: "#0066cc"
+        accent-hover: "#0052a3"
+        
+        # Status colors
+        success: "#4caf50"
+        warning: "#ff9800"
+        error: "#f44336"
+        info: "#2196f3"
+        
+        # Widget-specific colors
+        widget-background: "#1e1e1e"
+        widget-border: "#333333"
+        widget-header: "#2d2d2d"
+        
+        # Link colors
+        link: "#64b5f6"
+        link-hover: "#42a5f5"
+        
+        # Market colors
+        market-positive: "#4caf50"
+        market-negative: "#f44336"
+        market-neutral: "#b3b3b3"
+      
+      # Typography settings for dark theme
+      typography:
+        font-family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size-base: "14px"
+        line-height: 1.5
+        
+      # Widget styling
+      widgets:
+        border-radius: "8px"
+        padding: "16px"
+        margin: "8px"
+        shadow: "0 2px 8px rgba(0, 0, 0, 0.3)"
+        
+      # Dark mode specific settings
+      dark-mode:
+        enabled: true
+        auto-switch: false
+        respect-system-preference: false
+
     pages:
       - name: Home
         columns:
+          # Left Column (25% width) - Calendar, Clock, Weather, Markets
           - size: small
             widgets:
               - type: calendar
@@ -25,11 +87,158 @@ data:
                 timezones:
                   - timezone: Europe/Zurich
                     label: Local Time
+                  - timezone: America/New_York
+                    label: New York
+                  - timezone: Asia/Tokyo
+                    label: Tokyo
                     
+              - type: weather
+                title: Weather
+                location: Zurich, Switzerland
+                units: metric
+                show-area-name: true
+                hide-location: false
+                cache: 30m
+                forecast-days: 5
+                show-forecast: true
+                show-humidity: true
+                show-wind: true
+                show-pressure: false
+                temperature-unit: celsius
+                wind-speed-unit: kmh
+                pressure-unit: hpa
+                
+              - type: markets
+                title: Tech Stocks
+                cache: 5m
+                sort-by: change
+                show-change: true
+                show-change-percent: true
+                markets:
+                  - symbol: IBM
+                    name: IBM
+                  - symbol: GOOGL
+                    name: Alphabet
+                  - symbol: META
+                    name: Meta
+                  - symbol: MSFT
+                    name: Microsoft
+                  - symbol: NVDA
+                    name: NVIDIA
+                  - symbol: AAPL
+                    name: Apple
+                    
+          # Center Column (50% width) - News, Videos, Reddit in 3 rows
           - size: full
             widgets:
+              # Row 1: Tech News RSS Feeds
+              - type: rss
+                title: Tech News
+                feeds:
+                  - url: https://kubernetes.io/feed.xml
+                    title: Kubernetes Blog
+                  - url: https://blog.openai.com/rss/
+                    title: OpenAI Blog
+                  - url: https://www.anthropic.com/news/rss
+                    title: Anthropic News
+                  - url: https://research.ibm.com/blog/rss
+                    title: IBM Research Blog
+                  - url: https://nixos.org/blog/announcements-rss.xml
+                    title: NixOS News
+                  - url: https://www.oreilly.com/radar/feed/
+                    title: O'Reilly Radar
+                cache: 1h
+                limit: 6
+                
+              # Row 2: Tech Videos
+              - type: videos
+                title: Tech Videos
+                channels:
+                  - channel_id: UCZ2bu0qutTOM0tHYa_jkIwg
+                    name: Kubernetes
+                  - channel_id: UC8I7sbRjOFqGpxvjqfTO-4A
+                    name: NixOS Foundation
+                  - channel_id: UCKWThemeWrb7NgfAz02u1Aw
+                    name: IBM Research
+                  - channel_id: UCXZCJLdBC09xxGZ6gcdrc6A
+                    name: OpenAI
+                cache: 2h
+                limit: 4
+                
+              # Row 3: Reddit Communities
+              - type: rss
+                title: Reddit Communities
+                feeds:
+                  - url: https://www.reddit.com/r/homelab/.rss
+                    title: r/homelab
+                  - url: https://www.reddit.com/r/kubernetes/.rss
+                    title: r/kubernetes
+                  - url: https://www.reddit.com/r/nixos/.rss
+                    title: r/nixos
+                  - url: https://www.reddit.com/r/devops/.rss
+                    title: r/devops
+                  - url: https://www.reddit.com/r/MachineLearning/.rss
+                    title: r/MachineLearning
+                cache: 30m
+                limit: 5
+                
+          # Right Column (25% width) - Repositories, Twitch, Monitoring
+          - size: small
+            widgets:
+              - type: repositories
+                title: GitHub Repos
+                cache: 1h
+                limit: 6
+                collapse-after: 3
+                show-stars: true
+                show-forks: true
+                show-issues: true
+                show-pull-requests: true
+                show-last-commit: true
+                show-topics: false
+                repositories:
+                  - kubernetes/kubernetes
+                  - NixOS/nixpkgs
+                  - openai/openai-python
+                  - anthropics/anthropic-sdk-python
+                  - IBM/watson-machine-learning-sdk
+                  - glanceapp/glance
+                  - kubernetes/minikube
+                  - hashicorp/terraform
+                  - docker/compose
+                  - prometheus/prometheus
+                  - grafana/grafana
+                  - fluxcd/flux2
+                  
+              - type: twitch-channels
+                title: Tech Streams
+                cache: 5m
+                collapse-after: 4
+                show-titles: true
+                show-categories: true
+                show-viewers: true
+                show-avatars: true
+                show-status: true
+                channels:
+                  - channel: ThePrimeagen
+                    name: ThePrimeagen
+                  - channel: TechWorldwithNana
+                    name: TechWorld with Nana
+                  - channel: NetworkChuck
+                    name: NetworkChuck
+                  - channel: DevOpsToolkit
+                    name: DevOps Toolkit
+                  - channel: KodeKloud
+                    name: KodeKloud
+                  - channel: CloudNativeTV
+                    name: Cloud Native TV
+                  - channel: IBMDeveloper
+                    name: IBM Developer
+                  - channel: GoogleCloudTech
+                    name: Google Cloud Tech
+                  
               - type: group
-                title: Services
+                title: Infrastructure Monitoring
                 widgets:
                   - type: monitor
                     title: Grafana
@@ -41,9 +250,6 @@ data:
                     url: http://prometheus.monitoring.svc.cluster.local:9090
                     icon: si-prometheus
                     
-              - type: group  
-                title: Infrastructure
-                widgets:
                   - type: monitor
                     title: Longhorn
                     url: http://longhorn-frontend.longhorn-system.svc.cluster.local
@@ -53,26 +259,3 @@ data:
                     title: Traefik
                     url: http://traefik.traefik.svc.cluster.local:9000/dashboard/
                     icon: si-traefik
-                    
-                  - type: extension
-                    title: Cloudflare
-                    url: https://dash.cloudflare.com
-                    icon: si-cloudflare
-                
-              - type: rss
-                title: RSS Feeds
-                feeds:
-                  - url: https://feeds.feedburner.com/oreilly/radar
-                    title: O'Reilly Radar
-                    
-                  - url: https://kubernetes.io/feed.xml
-                    title: Kubernetes Blog
-                    
-                  - url: https://blog.traefik.io/rss/
-                    title: Traefik Blog
-                    
-                  - url: https://grafana.com/blog/index.xml
-                    title: Grafana Blog
-                    
-                cache: 1h  # Cache for 1 hour
-                limit: 10    # Show 10 most recent items per feed

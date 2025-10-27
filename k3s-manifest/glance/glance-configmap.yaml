@@ -14,8 +14,8 @@ data:
 
     theme:
       # Dark theme configuration
-      background-color: "#121212"
-      primary-color: "#1a1a1a"
+      background-color: "hsl(0, 0%, 7%)"
+      primary-color: "hsl(0, 0%, 10%)"
       contrast-multiplier: 1.2
       
       # Dark theme color scheme
@@ -145,7 +145,7 @@ data:
                     title: IBM Research Blog
                   - url: https://nixos.org/blog/announcements-rss.xml
                     title: NixOS News
-                  - url: https://www.oreilly.com/radar/feed/
+                  - url: https://feeds.oreilly.com/oreilly/radar
                     title: O'Reilly Radar
                 cache: 1h
                 limit: 6

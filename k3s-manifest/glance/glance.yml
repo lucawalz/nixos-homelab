@@ -1,0 +1,74 @@
+theme:
+  background-color: 15 23 42
+  primary-color: 99 102 241
+  positive-color: 34 197 94
+  negative-color: 239 68 68
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+pages:
+  - name: Home
+    columns:
+      - size: small
+        widgets:
+          - type: calendar
+            title: Calendar
+            
+          - type: clock
+            hour-format: 24h
+            timezones:
+              - timezone: Europe/Zurich
+                label: Local Time
+                
+      - size: full
+        widgets:
+          - type: group
+            title: Services
+            widgets:
+              - type: monitor
+                title: Grafana
+                url: https://grafana.syslabs.dev
+                icon: si-grafana
+                
+              - type: monitor
+                title: Prometheus
+                url: http://prometheus.monitoring.svc.cluster.local:9090
+                icon: si-prometheus
+                
+          - type: group  
+            title: Infrastructure
+            widgets:
+              - type: monitor
+                title: Longhorn
+                url: http://longhorn-frontend.longhorn-system.svc.cluster.local
+                icon: si-longhorn
+                
+              - type: monitor
+                title: Traefik
+                url: http://traefik.traefik.svc.cluster.local:9000/dashboard/
+                icon: si-traefik
+                
+              - type: extension
+                title: Cloudflare
+                url: https://dash.cloudflare.com
+                icon: si-cloudflare
+            
+          - type: rss
+            title: RSS Feeds
+            feeds:
+              - url: https://feeds.feedburner.com/oreilly/radar
+                title: O'Reilly Radar
+                
+              - url: https://kubernetes.io/feed.xml
+                title: Kubernetes Blog
+                
+              - url: https://blog.traefik.io/rss/
+                title: Traefik Blog
+                
+              - url: https://grafana.com/blog/index.xml
+                title: Grafana Blog
+                
+            cache: 3600  # Cache for 1 hour
+            limit: 10    # Show 10 most recent items per feed

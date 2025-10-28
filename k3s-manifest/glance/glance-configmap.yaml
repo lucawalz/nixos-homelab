@@ -184,6 +184,9 @@ data:
                   - title: Home Dashboard
                     url: https://home.syslabs.dev
                     icon: si:kubernetes
+                  - title: Uptime Kuma
+                    url: https://kuma.syslabs.dev
+                    icon: si:uptimekuma
                     
               - type: repository
                 repository: glanceapp/glance

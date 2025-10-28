@@ -1,0 +1,24 @@
+# Additional service for internal cluster access
+# This ensures https://traefik.traefik.svc.cluster.local:443 is available
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-internal
+  namespace: traefik
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: traefik
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: web
+    protocol: TCP
+    name: web
+  - port: 443
+    targetPort: websecure
+    protocol: TCP
+    name: websecure
+  selector:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: traefik

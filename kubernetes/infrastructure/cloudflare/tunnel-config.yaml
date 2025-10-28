@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tunnel-config
+  namespace: cloudflare
+data:
+  config.yaml: |
+    # Tunnel configuration - token contains tunnel ID and credentials
+    # Ingress rules - route traffic to Traefik
+    ingress:
+      # Route all subdomains to Traefik
+      - hostname: "*.syslabs.dev"
+        service: https://traefik.traefik.svc.cluster.local:443
+        originRequest:
+          noTLSVerify: true
+          connectTimeout: 30s
+          tlsTimeout: 30s
+          tcpKeepAlive: 30s
+          keepAliveTimeout: 90s
+          keepAliveConnections: 100
+      
+      # Route root domain to Traefik
+      - hostname: "syslabs.dev"
+        service: https://traefik.traefik.svc.cluster.local:443
+        originRequest:
+          noTLSVerify: true
+      
+      # Catch-all rule (required)
+      - service: http_status:404

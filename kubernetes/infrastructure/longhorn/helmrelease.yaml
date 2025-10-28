@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: longhorn
-      version: "1.10.0"  # Update to latest stable version
+      version: "1.7.2"  # Latest stable version
       sourceRef:
         kind: HelmRepository
         name: longhorn

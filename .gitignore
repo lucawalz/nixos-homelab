@@ -12,9 +12,16 @@ k3s-manifest/*/*-secret.yaml
 k3s-manifest/*/secret.yaml
 *.secret.yaml
 
+# Kubernetes secrets 
+kubernetes/*/*-secret.yaml
+kubernetes/*/secret.yaml
+kubernetes/*/*/secret.yaml
+kubernetes/*/*-credentials.yaml
+kubernetes/flux/bootstrap/git-credentials-secret.yaml
+
 # But ALLOW encrypted files
 !k3s-manifest/*/*.enc.yaml    # SOPS encrypted
-!*.enc.yaml                   # SOPS encrypted
+!*.enc.yaml                   # SOPS encrypted (COMMIT THESE)
 !nixos/secrets/*.age          # agenix encrypted (duplicate for clarity)
 
 # Cloudflare plain text tokens

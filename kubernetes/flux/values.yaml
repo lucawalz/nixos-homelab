@@ -1,0 +1,80 @@
+# FluxCD Helm Values
+# Based on the flux2 Helm chart
+
+# Source Controller
+sourceController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Kustomize Controller
+kustomizeController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Helm Controller
+helmController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Notification Controller
+notificationController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Image Reflector Controller
+imageReflectionController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Image Automation Controller
+imageAutomationController:
+  create: true
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Global settings
+logLevel: info
+watchAllNamespaces: true
+
+# Security context
+securityProfile:
+  enable: true
+
+# Multi-tenancy (disable for single-tenant setup)
+multiTenancy:
+  enabled: false

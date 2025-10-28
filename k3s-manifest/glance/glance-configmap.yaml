@@ -111,7 +111,7 @@ data:
                   - UC2eYFnH61tmytImy1mTYvhA # Luke Smith
                   - UCVls1GmFKf6WlTraIb_IaJg # DistroTube
                   - UCkf4VIqu3Acnfzuk3kRIFwA # gotbletu
-                  - UCO1cgjhGzsSYb1rsB4bFe4Q # Fireship
+                  - UCtxCXg-UvSnTKPOzLH4wJaQ # Fireship
                 
               # More Reddit Communities
               - type: group
@@ -158,7 +158,7 @@ data:
           - size: small
             widgets:
               - type: weather
-                location: Zurich, Switzerland
+                location: Böblingen, Germany
                 units: metric
                 hour-format: 24h
                 hide-location: false

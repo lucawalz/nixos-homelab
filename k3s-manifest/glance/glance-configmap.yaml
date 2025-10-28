@@ -30,19 +30,39 @@ data:
                 first-day-of-week: monday
                 
               - type: rss
-                title: RSS Feed
+                title: Tech & Research Feed
                 style: vertical-list
-                collapse-after: 5
+                collapse-after: 3
                 cache: 1h
                 feeds:
-                  - url: https://kubernetes.io/feed.xml
-                    title: Kubernetes Blog
-                  - url: https://nixos.org/blog/announcements-rss.xml
-                    title: NixOS News
-                  - url: https://www.docker.com/blog/feed/
-                    title: Docker Blog
-                  - url: https://www.cncf.io/feed/
-                    title: CNCF News
+                  - url: https://developer.ibm.com/blogs/feed/
+                    title: IBM Developer
+                  - url: https://aws.amazon.com/blogs/aws/feed/
+                    title: AWS Blog
+                  - url: https://cloud.google.com/blog/rss
+                    title: Google Cloud Blog
+                  - url: https://azure.microsoft.com/en-us/blog/feed/
+                    title: Microsoft Azure Blog
+                  - url: https://openai.com/blog/rss.xml
+                    title: OpenAI Blog
+                  - url: https://ai.googleblog.com/feeds/posts/default
+                    title: Google AI Blog
+                  - url: https://towardsdatascience.com/feed
+                    title: Towards Data Science
+                  - url: https://martinfowler.com/feed.atom
+                    title: Martin Fowler
+                  - url: http://feeds.feedburner.com/HighScalability
+                    title: High Scalability
+                  - url: https://netflixtechblog.com/feed
+                    title: Netflix Tech Blog
+                  - url: https://engineering.atspotify.com/feed/
+                    title: Spotify Engineering
+                  - url: https://www.iotforall.com/feed
+                    title: IoT For All
+                  - url: https://spectrum.ieee.org/rss/fulltext
+                    title: IEEE Spectrum
+                  - url: https://www.infoq.com/rss/rss.xml
+                    title: InfoQ
                 
               - type: markets
                 sort-by: change
@@ -63,14 +83,10 @@ data:
           # Center Column (50% width) - Grouped News, Videos, Reddit Communities
           - size: full
             widgets:
-              # Grouped News (Hacker News + Heise Developer)
+              # Grouped News (Heise Developer + Hacker News)
               - type: group
                 title: Tech News
                 widgets:
-                  - type: hacker-news
-                    title: Hacker News
-                    limit: 15
-                    collapse-after: 8
                   - type: rss
                     title: Heise Developer
                     style: vertical-list
@@ -81,6 +97,10 @@ data:
                         title: Heise Developer News
                       - url: https://www.heise.de/security/rss/news-atom.xml
                         title: Heise Security
+                  - type: hacker-news
+                    title: Hacker News
+                    limit: 15
+                    collapse-after: 8
                 
               # Videos
               - type: videos
@@ -90,6 +110,7 @@ data:
                   - UC2eYFnH61tmytImy1mTYvhA # Luke Smith
                   - UCVls1GmFKf6WlTraIb_IaJg # DistroTube
                   - UCkf4VIqu3Acnfzuk3kRIFwA # gotbletu
+                  - UCO1cgjhGzsSYb1rsB4bFe4Q # Fireship
                 
               # More Reddit Communities
               - type: group

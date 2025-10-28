@@ -60,18 +60,9 @@ data:
                   - symbol: AAPL
                     name: Apple
                     
-          # Center Column (50% width) - Videos, Grouped News, Reddit Communities
+          # Center Column (50% width) - Grouped News, Videos, Reddit Communities
           - size: full
             widgets:
-              # Videos
-              - type: videos
-                collapse-after: 6
-                channels:
-                  - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
-                  - UC2eYFnH61tmytImy1mTYvhA # Luke Smith
-                  - UCVls1GmFKf6WlTraIb_IaJg # DistroTube
-                  - UCkf4VIqu3Acnfzuk3kRIFwA # gotbletu
-                
               # Grouped News (Hacker News + Heise Developer)
               - type: group
                 title: Tech News
@@ -90,6 +81,15 @@ data:
                         title: Heise Developer News
                       - url: https://www.heise.de/security/rss/news-atom.xml
                         title: Heise Security
+                
+              # Videos
+              - type: videos
+                collapse-after: 6
+                channels:
+                  - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
+                  - UC2eYFnH61tmytImy1mTYvhA # Luke Smith
+                  - UCVls1GmFKf6WlTraIb_IaJg # DistroTube
+                  - UCkf4VIqu3Acnfzuk3kRIFwA # gotbletu
                 
               # More Reddit Communities
               - type: group

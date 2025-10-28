@@ -13,107 +13,39 @@ data:
       port: 8080
 
     theme:
-      # Dark theme configuration
-      background-color: "hsl(0, 0%, 7%)"
-      primary-color: "hsl(0, 0%, 10%)"
+      # Dark theme configuration using proper HSL format
+      background-color: 240 8 9
+      primary-color: 43 50 70
+      positive-color: 120 60 50
+      negative-color: 0 70 70
       contrast-multiplier: 1.2
-      
-      # Dark theme color scheme
-      colors:
-        # Background colors
-        background: "#121212"
-        surface: "#1e1e1e"
-        card: "#2d2d2d"
-        
-        # Text colors
-        text-primary: "#ffffff"
-        text-secondary: "#b3b3b3"
-        text-muted: "#808080"
-        
-        # Accent colors
-        accent: "#0066cc"
-        accent-hover: "#0052a3"
-        
-        # Status colors
-        success: "#4caf50"
-        warning: "#ff9800"
-        error: "#f44336"
-        info: "#2196f3"
-        
-        # Widget-specific colors
-        widget-background: "#1e1e1e"
-        widget-border: "#333333"
-        widget-header: "#2d2d2d"
-        
-        # Link colors
-        link: "#64b5f6"
-        link-hover: "#42a5f5"
-        
-        # Market colors
-        market-positive: "#4caf50"
-        market-negative: "#f44336"
-        market-neutral: "#b3b3b3"
-      
-      # Typography settings for dark theme
-      typography:
-        font-family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size-base: "14px"
-        line-height: 1.5
-        
-      # Widget styling
-      widgets:
-        border-radius: "8px"
-        padding: "16px"
-        margin: "8px"
-        shadow: "0 2px 8px rgba(0, 0, 0, 0.3)"
-        
-      # Dark mode specific settings
-      dark-mode:
-        enabled: true
-        auto-switch: false
-        respect-system-preference: false
 
     pages:
       - name: Home
         columns:
-          # Left Column (25% width) - Calendar, Clock, Weather, Markets
+          # Left Column (25% width) - Calendar, RSS Feed, Clock, Markets
           - size: small
             widgets:
               - type: calendar
-                title: Calendar
+                first-day-of-week: monday
                 
-              - type: clock
-                hour-format: 24h
-                timezones:
-                  - timezone: Europe/Zurich
-                    label: Local Time
-                  - timezone: America/New_York
-                    label: New York
-                  - timezone: Asia/Tokyo
-                    label: Tokyo
-                    
-              - type: weather
-                title: Weather
-                location: Zurich, Switzerland
-                units: metric
-                show-area-name: true
-                hide-location: false
-                cache: 30m
-                forecast-days: 5
-                show-forecast: true
-                show-humidity: true
-                show-wind: true
-                show-pressure: false
-                temperature-unit: celsius
-                wind-speed-unit: kmh
-                pressure-unit: hpa
+              - type: rss
+                title: RSS Feed
+                style: vertical-list
+                collapse-after: 5
+                cache: 1h
+                feeds:
+                  - url: https://kubernetes.io/feed.xml
+                    title: Kubernetes Blog
+                  - url: https://nixos.org/blog/announcements-rss.xml
+                    title: NixOS News
+                  - url: https://www.docker.com/blog/feed/
+                    title: Docker Blog
+                  - url: https://www.cncf.io/feed/
+                    title: CNCF News
                 
               - type: markets
-                title: Tech Stocks
-                cache: 5m
                 sort-by: change
-                show-change: true
-                show-change-percent: true
                 markets:
                   - symbol: IBM
                     name: IBM
@@ -128,134 +60,110 @@ data:
                   - symbol: AAPL
                     name: Apple
                     
-          # Center Column (50% width) - News, Videos, Reddit in 3 rows
+          # Center Column (50% width) - Videos, Grouped News, Reddit Communities
           - size: full
             widgets:
-              # Row 1: Tech News RSS Feeds
-              - type: rss
-                title: Tech News
-                feeds:
-                  - url: https://kubernetes.io/feed.xml
-                    title: Kubernetes Blog
-                  - url: https://blog.openai.com/rss/
-                    title: OpenAI Blog
-                  - url: https://www.anthropic.com/news/rss
-                    title: Anthropic News
-                  - url: https://research.ibm.com/blog/rss
-                    title: IBM Research Blog
-                  - url: https://nixos.org/blog/announcements-rss.xml
-                    title: NixOS News
-                  - url: https://feeds.oreilly.com/oreilly/radar
-                    title: O'Reilly Radar
-                cache: 1h
-                limit: 6
-                
-              # Row 2: Tech Videos
+              # Videos
               - type: videos
-                title: Tech Videos
+                collapse-after: 6
                 channels:
-                  - channel_id: UCZ2bu0qutTOM0tHYa_jkIwg
-                    name: Kubernetes
-                  - channel_id: UC8I7sbRjOFqGpxvjqfTO-4A
-                    name: NixOS Foundation
-                  - channel_id: UCKWThemeWrb7NgfAz02u1Aw
-                    name: IBM Research
-                  - channel_id: UCXZCJLdBC09xxGZ6gcdrc6A
-                    name: OpenAI
-                cache: 2h
-                limit: 4
+                  - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
+                  - UC2eYFnH61tmytImy1mTYvhA # Luke Smith
+                  - UCVls1GmFKf6WlTraIb_IaJg # DistroTube
+                  - UCkf4VIqu3Acnfzuk3kRIFwA # gotbletu
                 
-              # Row 3: Reddit Communities
-              - type: rss
+              # Grouped News (Hacker News + Heise Developer)
+              - type: group
+                title: Tech News
+                widgets:
+                  - type: hacker-news
+                    title: Hacker News
+                    limit: 15
+                    collapse-after: 8
+                  - type: rss
+                    title: Heise Developer
+                    style: vertical-list
+                    collapse-after: 6
+                    cache: 2h
+                    feeds:
+                      - url: https://www.heise.de/developer/rss/news-atom.xml
+                        title: Heise Developer News
+                      - url: https://www.heise.de/security/rss/news-atom.xml
+                        title: Heise Security
+                
+              # More Reddit Communities
+              - type: group
                 title: Reddit Communities
-                feeds:
-                  - url: https://www.reddit.com/r/homelab/.rss
-                    title: r/homelab
-                  - url: https://www.reddit.com/r/kubernetes/.rss
-                    title: r/kubernetes
-                  - url: https://www.reddit.com/r/nixos/.rss
-                    title: r/nixos
-                  - url: https://www.reddit.com/r/devops/.rss
-                    title: r/devops
-                  - url: https://www.reddit.com/r/MachineLearning/.rss
-                    title: r/MachineLearning
-                cache: 30m
-                limit: 5
+                widgets:
+                  - type: reddit
+                    subreddit: programming
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
+                  - type: reddit
+                    subreddit: devops
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
+                  - type: reddit
+                    subreddit: sysadmin
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
+                  - type: reddit
+                    subreddit: selfhosted
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
+                  - type: reddit
+                    subreddit: homelab
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
+                  - type: reddit
+                    subreddit: kubernetes
+                    style: vertical-list
+                    collapse-after: 4
+                    cache: 30m
+                    show-thumbnails: true
                 
-          # Right Column (25% width) - Repositories, Twitch, Monitoring
+          # Right Column (25% width) - Weather, Clock, Services Uptime, Repository
           - size: small
             widgets:
-              - type: github-repos
-                title: GitHub Repos
-                cache: 1h
-                limit: 6
-                collapse-after: 3
-                show-stars: true
-                show-forks: true
-                show-issues: true
-                show-pull-requests: true
-                show-last-commit: true
-                show-topics: false
-                repositories:
-                  - kubernetes/kubernetes
-                  - NixOS/nixpkgs
-                  - openai/openai-python
-                  - anthropics/anthropic-sdk-python
-                  - IBM/watson-machine-learning-sdk
-                  - glanceapp/glance
-                  - kubernetes/minikube
-                  - hashicorp/terraform
-                  - docker/compose
-                  - prometheus/prometheus
-                  - grafana/grafana
-                  - fluxcd/flux2
-                  
-              - type: twitch-channels
-                title: Tech Streams
-                cache: 5m
-                collapse-after: 4
-                show-titles: true
-                show-categories: true
-                show-viewers: true
-                show-avatars: true
-                show-status: true
-                channels:
-                  - channel: ThePrimeagen
-                    name: ThePrimeagen
-                  - channel: TechWorldwithNana
-                    name: TechWorld with Nana
-                  - channel: NetworkChuck
-                    name: NetworkChuck
-                  - channel: DevOpsToolkit
-                    name: DevOps Toolkit
-                  - channel: KodeKloud
-                    name: KodeKloud
-                  - channel: CloudNativeTV
-                    name: Cloud Native TV
-                  - channel: IBMDeveloper
-                    name: IBM Developer
-                  - channel: GoogleCloudTech
-                    name: Google Cloud Tech
-                  
-              - type: group
-                title: Infrastructure Monitoring
-                widgets:
-                  - type: monitor
-                    title: Grafana
+              - type: weather
+                location: Zurich, Switzerland
+                units: metric
+                hour-format: 24h
+                hide-location: false
+                show-area-name: true
+                
+              - type: clock
+                hour-format: 24h
+                timezones:
+                  - timezone: Europe/Zurich
+                    label: Local Time
+                  - timezone: America/New_York
+                    label: New York
+                  - timezone: Asia/Tokyo
+                    label: Tokyo
+                
+              - type: monitor
+                title: Services
+                cache: 1m
+                sites:
+                  - title: Grafana
                     url: https://grafana.syslabs.dev
-                    icon: si-grafana
+                    icon: si:grafana
+                  - title: Home Dashboard
+                    url: https://home.syslabs.dev
+                    icon: si:kubernetes
                     
-                  - type: monitor
-                    title: Prometheus
-                    url: http://prometheus.monitoring.svc.cluster.local:9090
-                    icon: si-prometheus
-                    
-                  - type: monitor
-                    title: Longhorn
-                    url: http://longhorn-frontend.longhorn-system.svc.cluster.local
-                    icon: si-longhorn
-                    
-                  - type: monitor
-                    title: Traefik
-                    url: http://traefik.traefik.svc.cluster.local:9000/dashboard/
-                    icon: si-traefik
+              - type: repository
+                repository: glanceapp/glance
+                pull-requests-limit: 3
+                issues-limit: 3

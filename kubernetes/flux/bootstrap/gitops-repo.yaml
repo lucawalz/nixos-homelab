@@ -8,7 +8,7 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: main  # or master, depending on your default branch
+    branch: main # or master, depending on your default branch
   url: https://github.com/lucawalz/nixos-homelab
   secretRef:
     name: git-credentials
@@ -21,12 +21,11 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  path: "./kubernetes/apps"  # Path to your applications
+  path: "./kubernetes/apps" # Path to your applications
   prune: true
   sourceRef:
     kind: GitRepository
     name: homelab-repo
-  validation: client
 ---
 # Kustomization for infrastructure components
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -41,4 +40,3 @@ spec:
   sourceRef:
     kind: GitRepository
     name: homelab-repo
-  validation: client

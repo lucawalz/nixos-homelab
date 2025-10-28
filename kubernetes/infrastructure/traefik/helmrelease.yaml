@@ -29,7 +29,7 @@ spec:
       - "--entrypoints.websecure.address=:443"
       - "--providers.kubernetescrd"
       - "--providers.kubernetesingress"
-      - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com" # Update this!
+      - "--certificatesresolvers.letsencrypt.acme.email=lucawalz.business@gmail.com" 
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 
@@ -45,19 +45,22 @@ spec:
     ports:
       web:
         port: 80
-        expose: true
+        expose:
+          default: true
         exposedPort: 80
         protocol: TCP
       websecure:
         port: 443
-        expose: true
+        expose:
+          default: true
         exposedPort: 443
         protocol: TCP
         tls:
           enabled: true
       traefik:
         port: 8080
-        expose: false
+        expose:
+          default: false
         protocol: TCP
 
     # Service configuration
@@ -76,7 +79,7 @@ spec:
       name: data
       accessMode: ReadWriteOnce
       size: 128Mi
-      storageClass: "longhorn" # Use your default storage class
+      storageClass: "longhorn" # Use default storage class
       path: /data
 
     # Resource limits

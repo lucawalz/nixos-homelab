@@ -73,10 +73,8 @@ in
   services.k3s = {
     enable = true;
     role = if meta.hostname == "master" then "server" else "agent";
-    # Use encrypted token for worker nodes
-    tokenFile = if meta.hostname == "master"
-                then "/var/lib/rancher/k3s/server/node-token"
-                else config.age.secrets.k3s-token.path;
+    # Use the same encrypted token for all nodes
+    tokenFile = config.age.secrets.k3s-token.path;
     serverAddr = if meta.hostname == "master" then "" else "https://master:6443";
     extraFlags = 
       if meta.hostname == "master" then [

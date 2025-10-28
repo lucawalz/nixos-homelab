@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: "37.2.0" # Helm chart version 
+      version: "37.2.0" # Helm chart version
       sourceRef:
         kind: HelmRepository
         name: traefik
@@ -29,14 +29,14 @@ spec:
       - "--entrypoints.websecure.address=:443"
       - "--providers.kubernetescrd"
       - "--providers.kubernetesingress"
-      - "--certificatesresolvers.letsencrypt.acme.email=lucawalz.business@gmail.com" 
+      - "--certificatesresolvers.letsencrypt.acme.email=lucawalz.business@gmail.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 
     # Deployment configuration
     deployment:
       enabled: true
-      replicas: 2
+      replicas: 1 # ACME requires single replica
       podAnnotations:
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
@@ -66,7 +66,7 @@ spec:
     # Service configuration
     service:
       enabled: true
-      type: ClusterIP  # Internal cluster access only
+      type: ClusterIP # Internal cluster access only
       # External access via NodePort if needed
       # type: NodePort
       # nodePorts:

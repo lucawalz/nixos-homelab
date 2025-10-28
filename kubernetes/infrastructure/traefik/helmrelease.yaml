@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: "37.2.0" # Helm chart version
+      version: "32.1.0"
       sourceRef:
         kind: HelmRepository
         name: traefik
@@ -19,7 +19,7 @@ spec:
     globalArguments:
       - "--global.checknewversion=false"
       - "--global.sendanonymoususage=false"
-
+    
     # Additional arguments
     additionalArguments:
       - "--serversTransport.insecureSkipVerify=true"
@@ -29,18 +29,18 @@ spec:
       - "--entrypoints.websecure.address=:443"
       - "--providers.kubernetescrd"
       - "--providers.kubernetesingress"
-      - "--certificatesresolvers.letsencrypt.acme.email=lucawalz.business@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=your-email@example.com"  # Update this!
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-
+    
     # Deployment configuration
     deployment:
       enabled: true
-      replicas: 1 # ACME requires single replica
+      replicas: 2
       podAnnotations:
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
-
+    
     # Ports configuration
     ports:
       web:
@@ -57,31 +57,21 @@ spec:
         protocol: TCP
         tls:
           enabled: true
-      traefik:
-        port: 8080
-        expose:
-          default: false
-        protocol: TCP
-
+    
     # Service configuration
     service:
       enabled: true
-      type: ClusterIP # Internal cluster access only
-      # External access via NodePort if needed
-      # type: NodePort
-      # nodePorts:
-      #   web: 30080
-      #   websecure: 30443
-
+      type: ClusterIP
+    
     # Persistence for ACME certificates
     persistence:
       enabled: true
       name: data
       accessMode: ReadWriteOnce
       size: 128Mi
-      storageClass: "longhorn" # Use default storage class
+      storageClass: "longhorn"  # Use Longhorn storage
       path: /data
-
+    
     # Resource limits
     resources:
       requests:
@@ -90,15 +80,3 @@ spec:
       limits:
         cpu: 300m
         memory: 150Mi
-
-    # Security context
-    securityContext:
-      capabilities:
-        drop: [ALL]
-      readOnlyRootFilesystem: true
-      runAsGroup: 65532
-      runAsNonRoot: true
-      runAsUser: 65532
-
-    podSecurityContext:
-      fsGroup: 65532

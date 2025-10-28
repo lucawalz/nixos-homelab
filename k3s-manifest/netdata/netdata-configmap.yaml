@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netdata-config
+  namespace: netdata
+  labels:
+    app: netdata
+    component: config
+data:
+  netdata.conf: |
+    [global]
+        # Update every 1 second for real-time monitoring
+        update every = 1
+        
+        # Use dbengine for efficient storage
+        memory mode = dbengine
+        
+        # Memory allocation for page cache (32MB)
+        page cache size = 32
+        
+        # Disk space allocation per node (256MB)
+        dbengine disk space = 256
+        
+        # Bind to all interfaces
+        bind socket to IP = 0.0.0.0
+        
+        # Default port
+        default port = 19999
+        
+        # Enable access log
+        access log = none
+        
+        # Error log level
+        error log = error
+        
+        # Hostname from environment
+        hostname = %NETDATA_HOSTNAME%
+        
+    [web]
+        # Web server configuration
+        web files owner = root
+        web files group = root
+        
+        # Enable compression
+        enable gzip compression = yes
+        
+        # Allow connections from anywhere (secured by ingress)
+        allow connections from = *
+        
+        # Allow dashboard from anywhere
+        allow dashboard from = *
+        
+        # Allow API from anywhere (for Prometheus scraping)
+        allow badges from = *
+        
+        # Allow management from anywhere
+        allow management from = *
+        
+    [plugins]
+        # Enable system monitoring plugins
+        proc = yes
+        diskspace = yes
+        cgroups = yes
+        
+        # Enable Kubernetes plugin for container metrics
+        go.d = yes
+        
+        # Disable unnecessary plugins to reduce overhead
+        charts.d = no
+        python.d = no
+        node.d = no
+        
+    [plugin:proc]
+        # System metrics collection
+        /proc/net/dev = yes
+        /proc/diskstats = yes
+        /proc/meminfo = yes
+        /proc/vmstat = yes
+        /proc/stat = yes
+        /proc/uptime = yes
+        /proc/loadavg = yes
+        /proc/sys/kernel/random/entropy_avail = yes
+        
+    [plugin:cgroups]
+        # Container metrics
+        enable by default cgroups matching = yes
+        search for cgroups in subpaths = yes
+        
+    # Kubernetes plugin configuration
+    [plugin:go.d]
+        # Enable Kubernetes monitoring
+        k8s_kubelet = yes
+        k8s_kubeproxy = yes
+        
+  go.d.conf: |
+    # Go.d plugin configuration for Kubernetes integration
+    modules:
+      k8s_kubelet:
+        name: k8s_kubelet
+        update_every: 1
+        
+      k8s_kubeproxy:
+        name: k8s_kubeproxy
+        update_every: 1
+        
+  stream.conf: |
+    # Streaming configuration for multi-node setup
+    [stream]
+        enabled = no
+        
+    # API key for streaming (not used in this setup)
+    [11111111-2222-3333-4444-555555555555]
+        enabled = no

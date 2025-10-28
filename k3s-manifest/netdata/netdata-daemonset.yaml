@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: netdata
+  namespace: netdata
+  labels:
+    app: netdata
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: netdata
+      component: monitoring
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: netdata
+        component: monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "19999"
+        prometheus.io/path: "/api/v1/allmetrics"
+    spec:
+      serviceAccountName: netdata
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      
+      # Security context for privileged access
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      
+      # Tolerations to run on all nodes including tainted ones
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+        - operator: Exists
+          effect: NoExecute
+        - operator: Exists
+          effect: PreferNoSchedule
+      
+      containers:
+        - name: netdata
+          image: netdata/netdata:stable
+          imagePullPolicy: Always
+          
+          # Resource limits as specified in requirements
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          
+          # Security context with required capabilities
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_PTRACE
+                - SYS_ADMIN
+                - SYS_RESOURCE
+                - NET_ADMIN
+          
+          # Environment variables
+          env:
+            - name: NETDATA_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NETDATA_CLAIM_TOKEN
+              value: ""
+            - name: NETDATA_CLAIM_URL
+              value: ""
+            - name: NETDATA_CLAIM_ROOMS
+              value: ""
+            - name: NETDATA_EXTRA_DEB_PACKAGES
+              value: ""
+            - name: NETDATA_EXTRA_APK_PACKAGES
+              value: ""
+          
+          # Ports configuration
+          ports:
+            - name: http
+              containerPort: 19999
+              protocol: TCP
+              hostPort: 19999
+          
+          # Liveness and readiness probes
+          livenessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: 19999
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: 19999
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          # Volume mounts for host access and persistent storage
+          volumeMounts:
+            # Host system paths for metrics collection
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: dev
+              mountPath: /host/dev
+              readOnly: true
+            - name: containerd-sock
+              mountPath: /var/run/containerd/containerd.sock
+              readOnly: true
+            - name: run
+              mountPath: /host/run
+              readOnly: true
+            
+            # Configuration from ConfigMap
+            - name: netdata-config
+              mountPath: /etc/netdata/netdata.conf
+              subPath: netdata.conf
+              readOnly: true
+            - name: netdata-config
+              mountPath: /etc/netdata/go.d.conf
+              subPath: go.d.conf
+              readOnly: true
+            - name: netdata-config
+              mountPath: /etc/netdata/stream.conf
+              subPath: stream.conf
+              readOnly: true
+            
+            # Local storage for cache and data
+            - name: netdata-cache
+              mountPath: /var/cache/netdata
+            - name: netdata-lib
+              mountPath: /var/lib/netdata
+      
+      # Volume definitions
+      volumes:
+        # Host system paths
+        - name: proc
+          hostPath:
+            path: /proc
+            type: Directory
+        - name: sys
+          hostPath:
+            path: /sys
+            type: Directory
+        - name: dev
+          hostPath:
+            path: /dev
+            type: Directory
+        - name: containerd-sock
+          hostPath:
+            path: /var/run/k3s/containerd/containerd.sock
+            type: Socket
+        - name: run
+          hostPath:
+            path: /run
+            type: Directory
+        
+        # Configuration ConfigMap
+        - name: netdata-config
+          configMap:
+            name: netdata-config
+            defaultMode: 0644
+        
+        # Local storage for each node
+        - name: netdata-cache
+          hostPath:
+            path: /var/lib/netdata/cache
+            type: DirectoryOrCreate
+        - name: netdata-lib
+          hostPath:
+            path: /var/lib/netdata/lib
+            type: DirectoryOrCreate

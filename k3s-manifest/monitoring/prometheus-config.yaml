@@ -109,3 +109,27 @@ data:
             action: keep
           - source_labels: [__meta_kubernetes_endpoint_node_name]
             target_label: node
+
+      # Netdata real-time monitoring
+      - job_name: 'netdata'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names: ['netdata']
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            regex: 'netdata'
+            action: keep
+          - source_labels: [__meta_kubernetes_endpoint_node_name]
+            target_label: node
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+        metrics_path: '/api/v1/allmetrics'
+        params:
+          format: ['prometheus']
